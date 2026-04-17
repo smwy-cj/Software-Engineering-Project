@@ -1,0 +1,24 @@
+name: Build and Test CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Compile Code
+      run: |
+        # 这里替换成你们项目的实际编译命令，例如：
+        # g++ main.cpp -o CampusHub 
+        echo "正在执行代码编译..."
+
+    - name: Run Tests
+      run: |
+        # 这里可以运行测试脚本，或调用 Postman CLI (Newman)
+        echo "正在执行自动化测试..."
