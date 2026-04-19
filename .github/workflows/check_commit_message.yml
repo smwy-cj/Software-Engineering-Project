@@ -1,0 +1,14 @@
+name: Check AI Collaboration Tags
+
+on: [push, pull_request]
+
+jobs:
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Commit Message Format
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '(\[AI-assisted\]|\[Human-written\]).*'
+          error: '错误：提交信息必须以 [AI-assisted] 或 [Human-written] 开头，请遵守《AI 协作契约》！'
+          excludeDescription: 'true'
