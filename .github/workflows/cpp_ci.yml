@@ -2,7 +2,7 @@ name: CampusHub Cross-Platform CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main","smwy-cj-patch-1"]
   pull_request:
     branches: [ "main" ]
 
@@ -27,10 +27,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake
-
-      - name: Setup CMake (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: jwlawrence/actions-setup-cmake@v2
 
       # 2. 跨平台编译：使用 CMake 统一构建逻辑
       - name: Configure and Build
