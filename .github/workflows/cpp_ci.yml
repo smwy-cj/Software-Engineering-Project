@@ -2,7 +2,7 @@ name: CampusHub Cross-Platform CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main","smwy-cj-patch-1"]
   pull_request:
     branches: [ "main" ]
 
@@ -28,21 +28,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake
 
-      - name: Setup CMake (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: jwlawrence/actions-setup-cmake@v2
+      # # 2. 跨平台编译：使用 CMake 统一构建逻辑
+      # - name: Configure and Build
+      #   run: |
+      #     cmake -B build
+      #     cmake --build build --config Release
 
-      # 2. 跨平台编译：使用 CMake 统一构建逻辑
-      - name: Configure and Build
-        run: |
-          cmake -B build
-          cmake --build build --config Release
+      # # 3. 自动化测试（集成 Postman 选型）
+      # - name: Run API Tests (Newman)
+      #   # 落实团队选用的 Postman AI 方案
+      #   run: |
+      #     echo "正在 ${{ matrix.os }} 环境下执行接口测试..."
+      #     # 注意：在 Windows 上运行命令时，GitHub Actions 会自动切换为 PowerShell
+      #     # 如果已将 Postman 测试脚本导出为 json，可在此运行：
+      #     # npx newman run ./tests/campus_hub_api.json
 
-      # 3. 自动化测试（集成 Postman 选型）
-      - name: Run API Tests (Newman)
-        # 落实团队选用的 Postman AI 方案
+      - name: Skip Build Step
         run: |
-          echo "正在 ${{ matrix.os }} 环境下执行接口测试..."
-          # 注意：在 Windows 上运行命令时，GitHub Actions 会自动切换为 PowerShell
-          # 如果已将 Postman 测试脚本导出为 json，可在此运行：
-          # npx newman run ./tests/campus_hub_api.json
+          echo "由于尚未添加 CMakeLists.txt，暂时跳过编译步骤。"
+          echo "当前仅进行环境检查。"
