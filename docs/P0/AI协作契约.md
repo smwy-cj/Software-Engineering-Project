@@ -40,7 +40,7 @@
 3. 三次及以上违约：上报课程老师，按课程规定进行处理。
 
 全体成员签名：
-成员1：______________
-成员2：______________
-成员3：______________
-成员4：______________
+成员1：<img src="./586CB494BFBE8408B21C53E5C58B2CC0.jpg" style=" max-width: 20%;" />
+成员2：<img src="./195D1AC089BB9918636E4F94D6D1E14B.jpg" style=" max-width: 20%;" />
+成员3：<img src="./1B320B8B31DD4C063B8238E757BFADD2.jpg" style=" max-width: 20%;" />
+成员4：<img src="./F853C3C7EDFEBFD404E57D938DEF73D0.jpg" style=" max-width: 20%;" />
