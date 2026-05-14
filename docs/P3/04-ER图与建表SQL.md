@@ -239,7 +239,7 @@ CREATE TABLE tb_treehole_post (
     visibility      VARCHAR(16)     NOT NULL DEFAULT 'PUBLIC'
                     COMMENT 'PUBLIC / PRIVATE',
     status          VARCHAR(16)     NOT NULL DEFAULT 'PENDING'
-                    COMMENT 'DRAFT / PENDING / PUBLISHED / REJECTED',
+                    COMMENT 'DRAFT / PENDING / PUBLISHED / REJECTED / HIDDEN / DELETED',
     like_count      INT             NOT NULL DEFAULT 0,
     comment_count   INT             NOT NULL DEFAULT 0,
     is_deleted      TINYINT(1)      NOT NULL DEFAULT 0,
@@ -263,7 +263,7 @@ CREATE TABLE tb_treehole_comment (
     content         VARCHAR(100)    NOT NULL,
     parent_id       BIGINT          DEFAULT NULL COMMENT '父评论ID，NULL为顶级评论',
     status          VARCHAR(16)     NOT NULL DEFAULT 'PENDING'
-                    COMMENT 'PENDING / PUBLISHED / REJECTED',
+                    COMMENT 'DRAFT / PENDING / PUBLISHED / REJECTED / HIDDEN / DELETED',
     is_deleted      TINYINT(1)      NOT NULL DEFAULT 0,
     created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -305,7 +305,7 @@ CREATE TABLE tb_partner_req (
     visibility      VARCHAR(16)     NOT NULL DEFAULT 'sameSchool'
                     COMMENT 'all / sameSchool / sameMajor',
     status          VARCHAR(16)     NOT NULL DEFAULT 'PENDING'
-                    COMMENT 'PENDING / PUBLISHED / EXPIRED / CLOSED',
+                    COMMENT 'DRAFT / PENDING / PUBLISHED / REJECTED / HIDDEN / DELETED',
     is_deleted      TINYINT(1)      NOT NULL DEFAULT 0,
     expire_time     DATETIME        NOT NULL,
     created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -326,7 +326,7 @@ CREATE TABLE tb_partner_match (
     applicant_id    BIGINT          NOT NULL COMMENT '申请人用户ID',
     apply_message   VARCHAR(100)    DEFAULT NULL COMMENT '申请附言',
     status          VARCHAR(16)     NOT NULL DEFAULT 'PENDING'
-                    COMMENT 'PENDING / ACCEPTED / REJECTED / ENDED',
+                    COMMENT 'PENDING / ACCEPTED / REJECTED / CANCELED / ENDED',
     apply_time      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     response_time   DATETIME        DEFAULT NULL,
     end_time        DATETIME        DEFAULT NULL,
@@ -410,7 +410,7 @@ CREATE TABLE tb_love_req (
     scope           VARCHAR(16)     NOT NULL DEFAULT 'sameSchool'
                     COMMENT 'sameSchool / sameCity / all',
     status          VARCHAR(16)     NOT NULL DEFAULT 'PENDING'
-                    COMMENT 'PENDING / PUBLISHED / EXPIRED / CLOSED',
+                    COMMENT 'DRAFT / PENDING / PUBLISHED / REJECTED / HIDDEN / DELETED',
     expire_time     DATETIME        NOT NULL,
     created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -427,7 +427,7 @@ CREATE TABLE tb_love_match (
     request_id      BIGINT          NOT NULL,
     applicant_id    BIGINT          NOT NULL COMMENT '发起心动方',
     status          VARCHAR(16)     NOT NULL DEFAULT 'PENDING'
-                    COMMENT 'PENDING / MUTUAL / REJECTED / ENDED',
+                    COMMENT 'PENDING / ACCEPTED / REJECTED / CANCELED / ENDED',
     apply_time      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     response_time   DATETIME        DEFAULT NULL COMMENT '对方回应时间',
     end_time        DATETIME        DEFAULT NULL,
@@ -556,7 +556,7 @@ CREATE TABLE tb_feedback (
     contact         VARCHAR(64)     DEFAULT NULL COMMENT '联系方式（可选）',
     feedback_number VARCHAR(20)     NOT NULL COMMENT '反馈编号（如FB20260513001）',
     status          VARCHAR(16)     NOT NULL DEFAULT 'PENDING'
-                    COMMENT 'PENDING / VIEWED / PROCESSING / RESOLVED / UNSOLVABLE',
+                    COMMENT 'PENDING / VIEWED / PROCESSING / RESOLVED / CLOSED',
     process_comment VARCHAR(256)    DEFAULT NULL,
     created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     processed_at    DATETIME        DEFAULT NULL,

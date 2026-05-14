@@ -1,7 +1,7 @@
 # API 规范文档
 
-> "青隅"校园互助服务平台 RESTful API 接口规范 v1.0
-> 基于 P2 ADR-003（前后端分离 + RESTful + JWT 身份认证）设计
+> CampusHub（青隅）校园互助服务平台 RESTful API 接口规范 v1.1
+> 基于 P2 ADR-003（前后端分离 + RESTful + JWT 身份认证），状态枚举对齐 P2 §6 统一定义
 
 ---
 
@@ -15,6 +15,7 @@
 | 基础路径 | `/api/v1` |
 | 数据格式 | JSON |
 | 字符编码 | UTF-8 |
+| 命名规范 | JSON 字段使用 lowerCamelCase（如 `createdAt`, `userId`），URL 路径使用短横线分隔 |
 | 认证方式 | Bearer Token (JWT)，对齐 P2 ADR-003 |
 | 部署方式 | 本地 JAR 包，单服务器（对齐 P2 最简架构决策） |
 
@@ -80,6 +81,36 @@ Accept: application/json               # 期望 JSON 响应
 | 50001 | 500 | 服务器内部错误 |
 | 50002 | 500 | 第三方服务异常 |
 
+### 1.4 统一状态枚举（对齐 P2 §6）
+
+全系统 content/matching/review status 字段统一使用以下枚举值：
+
+**内容状态（树洞动态、搭子需求、交友需求、评论）：**
+| 状态值 | 说明 |
+|--------|------|
+| DRAFT | 草稿 |
+| PENDING | 待审核 |
+| PUBLISHED | 已发布 |
+| REJECTED | 已驳回 |
+| HIDDEN | 已隐藏/已下架 |
+| DELETED | 已删除 |
+
+**匹配状态（搭子匹配、恋爱匹配）：**
+| 状态值 | 说明 |
+|--------|------|
+| PENDING | 待响应 |
+| ACCEPTED | 已接受 |
+| REJECTED | 已拒绝 |
+| CANCELED | 已取消 |
+| ENDED | 已结束 |
+
+**审核结果（审核记录）：**
+| 结果值 | 说明 |
+|--------|------|
+| PASSED | 通过 |
+| REJECTED | 驳回 |
+| WARNING | 警告 |
+
 ---
 
 ## 二、核心接口定义
@@ -123,7 +154,7 @@ Accept: application/json               # 期望 JSON 响应
     "userId": 10001,
     "username": "小明同学",
     "phone": "138****8000",
-    "registerTime": "2026-05-13T10:30:00Z"
+    "createdAt": "2026-05-13T10:30:00Z"
   }
 }
 ```
@@ -280,8 +311,8 @@ Authorization: Bearer <token>
   "data": {
     "requestId": 20001,
     "status": "PENDING",
-    "publishTime": "2026-05-13T11:00:00Z",
-    "expireTime": "2026-05-18T11:00:00Z"
+    "createdAt": "2026-05-13T11:00:00Z",
+    "expireAt": "2026-05-18T11:00:00Z"
   }
 }
 ```
@@ -357,8 +388,8 @@ GET /api/v1/partner/requests?type=study&grade=2024级&keyword=六级&sortBy=publ
         "maxMembers": 3,
         "currentMatches": 1,
         "validDays": 5,
-        "publishTime": "2026-05-13T11:00:00Z",
-        "expireTime": "2026-05-18T11:00:00Z"
+        "createdAt": "2026-05-13T11:00:00Z",
+        "expireAt": "2026-05-18T11:00:00Z"
       }
     ],
     "page": 1,
@@ -587,7 +618,7 @@ GET /api/v1/partner/requests?type=study&grade=2024级&keyword=六级&sortBy=publ
         "images": [],
         "likeCount": 42,
         "commentCount": 8,
-        "publishTime": "2026-05-13T09:00:00Z",
+        "createdAt": "2026-05-13T09:00:00Z",
         "likedByMe": false
       }
     ],
@@ -658,6 +689,624 @@ GET /api/v1/partner/requests?type=study&grade=2024级&keyword=六级&sortBy=publ
     "captchaId": "captcha-uuid-123",
     "captchaImage": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
   }
+}
+```
+
+---
+
+### 2.11 完善交友资料
+
+**接口描述：** 用户完善个人恋爱交友资料（需先实名认证）。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/love/profiles/me` |
+| Method | PUT |
+| 认证 | 是（需实名认证） |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| gender | string | 是 | male / female |
+| age | integer | 是 | 年龄 |
+| height | integer | 否 | 身高 cm |
+| weight | integer | 否 | 体重 kg |
+| constellation | string | 否 | 星座 |
+| interests | array[string] | 否 | 兴趣爱好标签列表 |
+| matePreference | object | 是 | 择偶标准 |
+| matePreference.gender | string | 是 | 期望性别 |
+| matePreference.ageRange | array[integer] | 否 | 期望年龄范围 [min, max] |
+| matePreference.major | string | 否 | 期望专业 |
+| matePreference.interests | array[string] | 否 | 期望共同兴趣 |
+| declaration | string | 是 | 交友宣言（10-100字） |
+| visibility | string | 否 | 可见范围：all / matched / selfOnly |
+
+**请求示例：**
+```json
+{
+  "gender": "male",
+  "age": 20,
+  "height": 178,
+  "weight": 70,
+  "constellation": "天蝎座",
+  "interests": ["篮球", "编程", "电影"],
+  "matePreference": {
+    "gender": "female",
+    "ageRange": [18, 22],
+    "interests": ["学习", "运动"]
+  },
+  "declaration": "想找一个可以一起学习、一起进步的人",
+  "visibility": "all"
+}
+```
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "交友资料更新成功",
+  "data": {
+    "profileId": 60001,
+    "completeness": 85
+  }
+}
+```
+
+---
+
+### 2.12 浏览交友资料列表
+
+**接口描述：** 分页浏览交友资料列表，支持筛选。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/love/profiles` |
+| Method | GET |
+| 认证 | 是（需实名认证） |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| gender | string | 否 | 性别筛选：male / female |
+| minAge | integer | 否 | 最小年龄 |
+| maxAge | integer | 否 | 最大年龄 |
+| scope | string | 否 | 范围：sameSchool / sameCity / all |
+| sortBy | string | 否 | 排序：createdAt / matchCount |
+| page | integer | 否 | 页码（默认 1） |
+| size | integer | 否 | 每页条数（默认 20） |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "content": [
+      {
+        "userId": 10002,
+        "nickname": "小红同学",
+        "age": 20,
+        "university": "XX大学",
+        "major": "软件工程",
+        "interests": ["读书", "旅行"],
+        "declaration": "想找一个可以一起学习的人",
+        "photos": ["url1", "url2"],
+        "matchCount": 12
+      }
+    ],
+    "page": 1,
+    "size": 20,
+    "totalElements": 85,
+    "totalPages": 5
+  }
+}
+```
+
+---
+
+### 2.13 发布交友需求
+
+**接口描述：** 完善资料后发布恋爱交友需求。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/love/requests` |
+| Method | POST |
+| 认证 | 是（需实名认证，交友资料完整度 ≥ 80%） |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| description | string | 是 | 需求描述（10-200字） |
+| validDays | integer | 否 | 有效天数（1-14，默认 7） |
+| scope | string | 否 | 交友范围：sameSchool / sameCity / all |
+
+**请求示例：**
+```json
+{
+  "description": "研一在读，性格开朗，希望找一个同样热爱生活的朋友",
+  "validDays": 7,
+  "scope": "sameSchool"
+}
+```
+
+**成功响应 (201)：**
+```json
+{
+  "code": 200,
+  "message": "交友需求发布成功，待审核",
+  "data": {
+    "requestId": 70001,
+    "status": "PENDING",
+    "createdAt": "2026-05-13T11:00:00Z",
+    "expireAt": "2026-05-20T11:00:00Z"
+  }
+}
+```
+
+---
+
+### 2.14 发送心动
+
+**接口描述：** 对交友需求发送心动（单向，对方不感知）。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/love/requests/{requestId}/heart` |
+| Method | POST |
+| 认证 | 是（需实名认证） |
+
+**路径参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| requestId | integer | 是 | 交友需求 ID |
+
+**成功响应 (201)：**
+```json
+{
+  "code": 200,
+  "message": "心动已发送（对方不可见，双向心动后匹配）",
+  "data": {
+    "matchId": 80001,
+    "status": "PENDING"
+  }
+}
+```
+
+---
+
+### 2.15 查看交友匹配列表
+
+**接口描述：** 查看我的双向心动匹配列表。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/love/matches` |
+| Method | GET |
+| 认证 | 是 |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| status | string | 否 | 筛选：PENDING / ACCEPTED / ENDED |
+| page | integer | 否 | 页码（默认 1） |
+| size | integer | 否 | 每页条数（默认 20） |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "content": [
+      {
+        "matchId": 80001,
+        "status": "ACCEPTED",
+        "partner": {
+          "userId": 10002,
+          "nickname": "小红同学",
+          "avatar": "url",
+          "declaration": "想找一个可以一起学习的人"
+        },
+        "createdAt": "2026-05-14T10:00:00Z"
+      }
+    ],
+    "page": 1,
+    "size": 20,
+    "totalElements": 3
+  }
+}
+```
+
+---
+
+### 2.16 获取待审核列表（管理员）
+
+**接口描述：** 管理员查看待审核内容列表。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/admin/reviews/pending` |
+| Method | GET |
+| 认证 | 是（管理员权限） |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| contentType | string | 否 | 内容类型：treeholePost / treeholeComment / partnerReq / loveProfile |
+| page | integer | 否 | 页码（默认 1） |
+| size | integer | 否 | 每页条数（默认 20） |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "content": [
+      {
+        "reviewId": 90001,
+        "contentType": "treeholePost",
+        "contentId": 50001,
+        "userId": 10001,
+        "contentPreview": "期末周太累了...图书馆位置都抢不到",
+        "submitTime": "2026-05-13T09:00:00Z"
+      }
+    ],
+    "page": 1,
+    "size": 20,
+    "totalElements": 15
+  }
+}
+```
+
+---
+
+### 2.17 查看审核详情（管理员）
+
+**接口描述：** 管理员查看待审核内容完整信息。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/admin/reviews/{reviewId}` |
+| Method | GET |
+| 认证 | 是（管理员权限） |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "reviewId": 90001,
+    "contentType": "treeholePost",
+    "contentId": 50001,
+    "userInfo": {
+      "userId": 10001,
+      "nickname": "小明同学",
+      "certStatus": "CERTIFIED"
+    },
+    "content": {
+      "text": "期末周太累了...图书馆位置都抢不到",
+      "images": [],
+      "category": "study"
+    },
+    "submitTime": "2026-05-13T09:00:00Z"
+  }
+}
+```
+
+---
+
+### 2.18 提交审核结果（管理员）
+
+**接口描述：** 管理员提交审核结果。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/admin/reviews/{reviewId}` |
+| Method | PUT |
+| 认证 | 是（管理员权限） |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| result | string | 是 | 审核结果：PASSED / REJECTED / WARNING |
+| comment | string | 是 | 审核意见 |
+
+**请求示例：**
+```json
+{
+  "result": "PASSED",
+  "comment": "内容合规，审核通过"
+}
+```
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "审核完成",
+  "data": {
+    "reviewId": 90001,
+    "result": "PASSED",
+    "reviewTime": "2026-05-13T14:00:00Z"
+  }
+}
+```
+
+---
+
+### 2.19 封禁用户（管理员）
+
+**接口描述：** 管理员封禁违规用户。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/admin/users/{userId}/ban` |
+| Method | POST |
+| 认证 | 是（管理员权限） |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| action | string | 是 | WARNED / MUTED / BANNED |
+| reason | string | 是 | 处罚原因 |
+| duration | integer | 否 | 处罚时长（天），BANNED 时必填 |
+
+**请求示例：**
+```json
+{
+  "action": "MUTED",
+  "reason": "多次发布违规内容",
+  "duration": 7
+}
+```
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "用户处罚成功",
+  "data": {
+    "userId": 10001,
+    "accountStatus": "MUTED",
+    "mutedUntil": "2026-05-20T14:00:00Z"
+  }
+}
+```
+
+---
+
+### 2.20 获取通知列表
+
+**接口描述：** 获取当前用户的通知列表。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/notifications` |
+| Method | GET |
+| 认证 | 是 |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| type | string | 否 | 通知类型：system / interaction / review |
+| isRead | boolean | 否 | 已读/未读筛选 |
+| page | integer | 否 | 页码（默认 1） |
+| size | integer | 否 | 每页条数（默认 20） |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "content": [
+      {
+        "id": 10001,
+        "type": "interaction",
+        "title": "有人给你的树洞点赞了",
+        "content": "匿名小友327 给你的树洞动态点了赞",
+        "isRead": false,
+        "relatedType": "treeholePost",
+        "relatedId": 50001,
+        "createdAt": "2026-05-13T15:00:00Z"
+      }
+    ],
+    "page": 1,
+    "size": 20,
+    "totalElements": 42,
+    "unreadCount": 5
+  }
+}
+```
+
+---
+
+### 2.21 标记单条通知已读
+
+**接口描述：** 标记指定通知为已读。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/notifications/{id}/read` |
+| Method | PUT |
+| 认证 | 是 |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "已标记为已读"
+}
+```
+
+---
+
+### 2.22 全部标记已读
+
+**接口描述：** 标记当前用户所有通知为已读。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/notifications/read-all` |
+| Method | PUT |
+| 认证 | 是 |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "已全部标记为已读",
+  "data": {
+    "updatedCount": 42
+  }
+}
+```
+
+---
+
+### 2.23 提交反馈
+
+**接口描述：** 用户提交反馈建议。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/feedback` |
+| Method | POST |
+| 认证 | 是 |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| type | string | 是 | 反馈类型：bug / content / privacy / suggestion / other |
+| content | string | 是 | 反馈内容（10-500字） |
+| contact | string | 否 | 联系方式（可选） |
+
+**成功响应 (201)：**
+```json
+{
+  "code": 200,
+  "message": "反馈提交成功",
+  "data": {
+    "feedbackNumber": "FB20260513001"
+  }
+}
+```
+
+---
+
+### 2.24 查看我的反馈
+
+**接口描述：** 查看用户提交的反馈列表及处理进度。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/feedback/me` |
+| Method | GET |
+| 认证 | 是 |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| status | string | 否 | PENDING / VIEWED / PROCESSING / RESOLVED / CLOSED |
+| page | integer | 否 | 页码 |
+| size | integer | 否 | 每页条数 |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "content": [
+      {
+        "feedbackNumber": "FB20260513001",
+        "type": "bug",
+        "content": "树洞图片上传后无法显示",
+        "status": "PROCESSING",
+        "processComment": "已确认问题，正在修复",
+        "createdAt": "2026-05-13T10:00:00Z"
+      }
+    ],
+    "totalElements": 3
+  }
+}
+```
+
+---
+
+### 2.25 管理反馈列表（管理员）
+
+**接口描述：** 管理员查看所有反馈。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/admin/feedback` |
+| Method | GET |
+| 认证 | 是（管理员权限） |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| status | string | 否 | PENDING / VIEWED / PROCESSING / RESOLVED / CLOSED |
+| type | string | 否 | 反馈类型筛选 |
+| page | integer | 否 | 页码 |
+| size | integer | 否 | 每页条数 |
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "content": [
+      {
+        "feedbackNumber": "FB20260513001",
+        "type": "bug",
+        "content": "树洞图片上传后无法显示",
+        "status": "PENDING",
+        "userInfo": { "userId": 10001, "nickname": "小明同学" },
+        "createdAt": "2026-05-13T10:00:00Z"
+      }
+    ],
+    "totalElements": 8
+  }
+}
+```
+
+---
+
+### 2.26 处理反馈（管理员）
+
+**接口描述：** 管理员处理用户反馈。
+
+| 项目 | 说明 |
+|------|------|
+| URL | `/api/v1/admin/feedback/{feedbackNumber}` |
+| Method | PUT |
+| 认证 | 是（管理员权限） |
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| status | string | 是 | VIEWED / PROCESSING / RESOLVED / CLOSED |
+| processComment | string | 是 | 处理意见 |
+
+**请求示例：**
+```json
+{
+  "status": "PROCESSING",
+  "processComment": "已确认问题，正在修复中"
+}
+```
+
+**成功响应 (200)：**
+```json
+{
+  "code": 200,
+  "message": "反馈处理状态已更新"
 }
 ```
 
