@@ -1,0 +1,7 @@
+#!/bin/sh
+# Maven Wrapper - downloads and runs Maven
+# This is a placeholder; in production use the official Maven Wrapper JAR
+
+echo "Maven Wrapper: Please install Maven 3.9+ from https://maven.apache.org/"
+echo "Or run: ./mvnw (requires maven-wrapper.jar and .mvn/wrapper/maven-wrapper.properties)"
+exit 1

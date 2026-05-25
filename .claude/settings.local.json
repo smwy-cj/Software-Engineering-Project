@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pdftotext *)"
+      "Bash(pdftotext *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
     ]
   }
 }

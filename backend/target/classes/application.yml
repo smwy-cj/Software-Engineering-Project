@@ -1,0 +1,53 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: campushub
+
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:h2:mem:campushub;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    property-naming-strategy: LOWER_CAMEL_CASE
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+app:
+  jwt:
+    secret: campushub-jwt-secret-key-for-development-only-must-be-at-least-256-bits-long
+    access-token-expiration: 7200000
+    refresh-token-expiration: 604800000
+  upload:
+    max-file-size: 5MB
+    avatar-path: uploads/avatars
+    image-path: uploads/images
+  sms:
+    code-length: 6
+    code-expiration: 300
+    retry-after: 60
+  security:
+    max-login-failures: 5
+    lockout-duration-minutes: 15
+    bcrypt-strength: 10

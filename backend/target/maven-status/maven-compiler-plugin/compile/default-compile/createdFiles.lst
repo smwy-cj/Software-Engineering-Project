@@ -1,0 +1,6 @@
+com\campushub\repository\AdminRepository.class
+com\campushub\controller\FeedbackController.class
+com\campushub\CampusHubApplication.class
+com\campushub\entity\Admin.class
+com\campushub\repository\LoveProfileRepository.class
+com\campushub\entity\LoveProfile.class
