@@ -48,4 +48,10 @@ public class AuthController {
     public ApiResponse<?> getCertStatus(@RequestAttribute("userId") Long userId) {
         return ApiResponse.success(userService.getCertStatus(userId));
     }
+
+    @PutMapping("/profile")
+    public ApiResponse<?> updateProfile(@RequestAttribute("userId") Long userId,
+                                         @Valid @RequestBody UserProfileRequest req) {
+        return ApiResponse.success("个人资料更新成功", userService.updateProfile(userId, req));
+    }
 }

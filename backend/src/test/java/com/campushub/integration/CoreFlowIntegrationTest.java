@@ -33,6 +33,18 @@ class CoreFlowIntegrationTest {
     private UserCertRepository userCertRepository;
 
     @Autowired
+    private PartnerReqRepository partnerReqRepository;
+
+    @Autowired
+    private LoveReqRepository loveReqRepository;
+
+    @Autowired
+    private ReviewRecordRepository reviewRecordRepository;
+
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private String baseUrl;
@@ -40,22 +52,28 @@ class CoreFlowIntegrationTest {
     private String token2;
     private Long userId1;
     private Long userId2;
+    private String adminToken;
+    private String phone1;
+    private String phone2;
 
     @BeforeEach
     void setUp() {
         baseUrl = "http://localhost:" + port + "/api/v1";
+        long suffix = System.nanoTime() % 100000;
+        phone1 = "13900" + String.format("%06d", suffix);
+        phone2 = "13901" + String.format("%06d", suffix);
 
         // Create two test users
         User user1 = new User();
-        user1.setUsername("集成测试用户1");
-        user1.setPhone("13900139001");
+        user1.setUsername("集成测试用户1" + suffix);
+        user1.setPhone(phone1);
         user1.setPasswordHash(passwordEncoder.encode("Test1234"));
         user1.setAccountStatus("NORMAL");
         userId1 = userRepository.save(user1).getId();
 
         User user2 = new User();
-        user2.setUsername("集成测试用户2");
-        user2.setPhone("13900139002");
+        user2.setUsername("集成测试用户2" + suffix);
+        user2.setPhone(phone2);
         user2.setPasswordHash(passwordEncoder.encode("Test1234"));
         user2.setAccountStatus("NORMAL");
         userId2 = userRepository.save(user2).getId();
@@ -65,7 +83,7 @@ class CoreFlowIntegrationTest {
         cert1.setUserId(userId1);
         cert1.setStudentId("IT" + userId1);
         cert1.setRealName("集成用户1");
-        cert1.setIdCard("32000020000101000" + userId1);
+        cert1.setIdCard("320000200001010001");
         cert1.setUniversity("测试大学");
         cert1.setMajor("计算机科学");
         cert1.setGrade("2024级");
@@ -78,7 +96,7 @@ class CoreFlowIntegrationTest {
         cert2.setUserId(userId2);
         cert2.setStudentId("IT" + userId2);
         cert2.setRealName("集成用户2");
-        cert2.setIdCard("32000020000101000" + userId2);
+        cert2.setIdCard("320000200001010002");
         cert2.setUniversity("测试大学");
         cert2.setMajor("计算机科学");
         cert2.setGrade("2024级");
@@ -88,8 +106,27 @@ class CoreFlowIntegrationTest {
         userCertRepository.save(cert2);
 
         // Login to get tokens
-        token1 = login("13900139001", "Test1234");
-        token2 = login("13900139002", "Test1234");
+        token1 = login(phone1, "Test1234");
+        token2 = login(phone2, "Test1234");
+        adminToken = createAdminAndLogin(suffix);
+    }
+
+    private String createAdminAndLogin(long suffix) {
+        String adminPhone = "13902" + String.format("%06d", suffix);
+        User adminUser = new User();
+        adminUser.setUsername("集成管理员" + suffix);
+        adminUser.setPhone(adminPhone);
+        adminUser.setPasswordHash(passwordEncoder.encode("Admin123"));
+        adminUser.setAccountStatus("NORMAL");
+        adminUser = userRepository.save(adminUser);
+
+        Admin admin = new Admin();
+        admin.setUserId(adminUser.getId());
+        admin.setAdminLevel("SUPER");
+        admin.setPermissions("[\"review\"]");
+        adminRepository.save(admin);
+
+        return login(adminPhone, "Admin123");
     }
 
     private String login(String phone, String password) {
@@ -133,6 +170,7 @@ class CoreFlowIntegrationTest {
 
         Map<String, Object> data = (Map<String, Object>) createResp.getBody().get("data");
         Long requestId = ((Number) data.get("requestId")).longValue();
+        publishPartnerRequest(requestId);
 
         // Step 2: User1 applies for the request
         Map<String, String> applyBody = Map.of("message", "一起加油！");
@@ -184,11 +222,59 @@ class CoreFlowIntegrationTest {
                 baseUrl + "/partner/requests", reqEntity, Map.class);
         Map<String, Object> data = (Map<String, Object>) createResp.getBody().get("data");
         Long requestId = ((Number) data.get("requestId")).longValue();
+        publishPartnerRequest(requestId);
 
         // User1 tries to apply to own request
         HttpEntity<Map<String, String>> applyEntity = new HttpEntity<>(Map.of(), authHeaders(token1));
         ResponseEntity<Map> applyResp = restTemplate.postForEntity(
                 baseUrl + "/partner/requests/" + requestId + "/apply", applyEntity, Map.class);
         assertEquals(40003, applyResp.getBody().get("code"));
+    }
+
+    @Test
+    void testLoveRequestVisibleAfterAdminApproval() {
+        Map<String, Object> body = Map.of(
+                "description", "希望认识愿意一起自习和散步的同校同学",
+                "validDays", 7,
+                "scope", "sameSchool");
+        HttpEntity<Map<String, Object>> createEntity = new HttpEntity<>(body, authHeaders(token1));
+
+        ResponseEntity<Map> createResp = restTemplate.postForEntity(
+                baseUrl + "/love/requests", createEntity, Map.class);
+        assertEquals(200, createResp.getBody().get("code"));
+        Map<String, Object> createData = (Map<String, Object>) createResp.getBody().get("data");
+        Long requestId = ((Number) createData.get("requestId")).longValue();
+
+        assertTrue(listLoveRequestsForUser2().stream()
+                .noneMatch(item -> requestId.equals(((Number) item.get("requestId")).longValue())));
+
+        ReviewRecord review = reviewRecordRepository.findAll().stream()
+                .filter(r -> "loveReq".equals(r.getContentType()) && requestId.equals(r.getContentId()))
+                .findFirst()
+                .orElseThrow();
+        HttpEntity<Map<String, String>> reviewEntity = new HttpEntity<>(
+                Map.of("result", "PASSED", "comment", "审核通过"), authHeaders(adminToken));
+        ResponseEntity<Map> reviewResp = restTemplate.exchange(
+                baseUrl + "/admin/reviews/" + review.getId(), HttpMethod.PUT, reviewEntity, Map.class);
+        assertEquals(200, reviewResp.getBody().get("code"));
+        assertEquals("PUBLISHED", loveReqRepository.findById(requestId).orElseThrow().getStatus());
+
+        assertTrue(listLoveRequestsForUser2().stream()
+                .anyMatch(item -> requestId.equals(((Number) item.get("requestId")).longValue())));
+    }
+
+    private java.util.List<Map<String, Object>> listLoveRequestsForUser2() {
+        HttpEntity<Void> entity = new HttpEntity<>(authHeaders(token2));
+        ResponseEntity<Map> resp = restTemplate.exchange(
+                baseUrl + "/love/requests?sortBy=published&size=50", HttpMethod.GET, entity, Map.class);
+        assertEquals(200, resp.getBody().get("code"));
+        Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
+        return (java.util.List<Map<String, Object>>) data.get("content");
+    }
+
+    private void publishPartnerRequest(Long requestId) {
+        PartnerReq req = partnerReqRepository.findById(requestId).orElseThrow();
+        req.setStatus("PUBLISHED");
+        partnerReqRepository.save(req);
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.util.List;
 import java.util.Optional;
 
 public interface PartnerMatchRepository extends JpaRepository<PartnerMatch, Long> {
@@ -16,4 +17,6 @@ public interface PartnerMatchRepository extends JpaRepository<PartnerMatch, Long
     @Query("SELECT m FROM PartnerMatch m WHERE m.applicantId = :userId OR m.requestId IN " +
            "(SELECT r.id FROM PartnerReq r WHERE r.userId = :userId)")
     Page<PartnerMatch> findByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    List<PartnerMatch> findTop20ByApplicantIdOrderByApplyTimeDesc(Long applicantId);
 }

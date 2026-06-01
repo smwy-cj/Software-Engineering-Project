@@ -18,7 +18,7 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @Column(length = 255)
+    @Lob
     private String avatar;
 
     @Column(name = "account_status", nullable = false, length = 16)

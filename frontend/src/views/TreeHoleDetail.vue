@@ -1,35 +1,51 @@
 <template>
-  <div>
-    <div class="card" v-if="post">
+  <main class="business-page detail-page glass-page">
+    <section class="detail-card glass-surface" v-if="post">
       <div class="post-header">
-        <span class="post-user">{{ post.anonymousName }}</span>
-        <span class="post-time">{{ formatTime(post.createdAt) }}</span>
+        <div class="feed-header">
+          <div class="feed-avatar"></div>
+          <div>
+            <span class="feed-name">{{ post.anonymousName || '匿名小友' }}</span>
+            <div class="feed-date">{{ formatTime(post.createdAt) }}</div>
+          </div>
+        </div>
+        <span class="glass-tag">{{ post.category }}</span>
       </div>
-      <p style="font-size:16px;line-height:1.8;margin:12px 0;">{{ post.content }}</p>
-      <div class="post-footer">
-        <span>❤ {{ post.likeCount }}</span>
-        <span>💬 {{ post.commentCount }}</span>
-        <span class="tag">{{ post.category }}</span>
+      <p class="detail-content">{{ post.content }}</p>
+      <div class="detail-actions">
+        <div class="feed-meta">
+          <span class="metric-pill">喜欢 {{ post.likeCount }}</span>
+          <span class="metric-pill">评论 {{ post.commentCount }}</span>
+        </div>
+        <button class="glass-button-primary" @click="toggleLike">{{ post.likedByMe ? '取消点赞' : '点赞' }}</button>
       </div>
-      <div style="margin-top:12px;">
-        <button class="btn-sm" @click="toggleLike">{{ post.likedByMe ? '取消点赞' : '点赞' }}</button>
-      </div>
-    </div>
+    </section>
 
-    <div class="card">
-      <h3>评论 ({{ comments.length }})</h3>
-      <div v-if="authStore.isLoggedIn" style="margin-bottom:16px;">
-        <textarea v-model="commentContent" placeholder="写评论..." maxlength="100" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;min-height:60px;"></textarea>
-        <button class="btn-sm" style="margin-top:8px;" @click="submitComment" :disabled="!commentContent">发表评论</button>
+    <section class="comments-panel glass-surface">
+      <div class="section-heading">
+        <div>
+          <h2>评论 {{ comments.length }}</h2>
+          <p>把回应写得轻一点，也认真一点。</p>
+        </div>
       </div>
-      <div v-if="comments.length === 0" class="empty-state">暂无评论</div>
-      <div v-for="c in comments" :key="c.commentId" style="padding:12px 0;border-bottom:1px solid #f0f0f0;">
-        <span style="color:#4a90d9;font-size:13px;">{{ c.anonymousName }}</span>
-        <span style="color:#999;font-size:12px;margin-left:8px;">{{ formatTime(c.createdAt) }}</span>
-        <p style="margin-top:4px;font-size:14px;">{{ c.content }}</p>
+
+      <div v-if="authStore.isLoggedIn" class="comment-composer glass-mini-card">
+        <textarea class="glass-input" v-model="commentContent" placeholder="写评论..." maxlength="100"></textarea>
+        <button class="glass-button-primary" @click="submitComment" :disabled="!commentContent">发表评论</button>
       </div>
-    </div>
-  </div>
+
+      <div v-if="comments.length === 0" class="empty-state empty-treehole">还没有回应，给这条心情留下一句温柔的话吧。</div>
+      <div v-else class="comment-list">
+        <article v-for="c in comments" :key="c.commentId" class="comment-item glass-mini-card">
+          <div class="post-header">
+            <span class="feed-name">{{ c.anonymousName }}</span>
+            <span class="post-time">{{ formatTime(c.createdAt) }}</span>
+          </div>
+          <p>{{ c.content }}</p>
+        </article>
+      </div>
+    </section>
+  </main>
 </template>
 
 <script setup>

@@ -1,0 +1,70 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.campushub:campushub >-----------------------
+[INFO] Building CampusHub 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.5:run (default-cli) > test-compile @ campushub >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ campushub ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ campushub ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ campushub ---
+[INFO] skip non existing resourceDirectory C:\Users\Clausius Fan\Desktop\smwy_se_github\Software-Engineering-Project\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ campushub ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.5:run (default-cli) < test-compile @ campushub <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.5:run (default-cli) @ campushub ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-05-31T23:14:58.656+08:00  INFO 12772 --- [campushub] [           main] com.campushub.CampusHubApplication       : Starting CampusHubApplication using Java 17.0.19 with PID 12772 (C:\Users\Clausius Fan\Desktop\smwy_se_github\Software-Engineering-Project\backend\target\classes started by Clausius Fan in C:\Users\Clausius Fan\Desktop\smwy_se_github\Software-Engineering-Project\backend)
+2026-05-31T23:14:58.658+08:00  INFO 12772 --- [campushub] [           main] com.campushub.CampusHubApplication       : The following 1 profile is active: "dev"
+2026-05-31T23:14:59.098+08:00  INFO 12772 --- [campushub] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-31T23:14:59.156+08:00  INFO 12772 --- [campushub] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 50 ms. Found 16 JPA repository interfaces.
+2026-05-31T23:14:59.525+08:00  INFO 12772 --- [campushub] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-05-31T23:14:59.532+08:00  INFO 12772 --- [campushub] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-31T23:14:59.532+08:00  INFO 12772 --- [campushub] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-05-31T23:14:59.575+08:00  INFO 12772 --- [campushub] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-31T23:14:59.577+08:00  INFO 12772 --- [campushub] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 883 ms
+2026-05-31T23:14:59.593+08:00  INFO 12772 --- [campushub] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-31T23:14:59.708+08:00  INFO 12772 --- [campushub] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:campushub user=SA
+2026-05-31T23:14:59.709+08:00  INFO 12772 --- [campushub] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-31T23:14:59.717+08:00  INFO 12772 --- [campushub] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:campushub'
+2026-05-31T23:14:59.811+08:00  INFO 12772 --- [campushub] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-31T23:14:59.851+08:00  INFO 12772 --- [campushub] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-05-31T23:14:59.876+08:00  INFO 12772 --- [campushub] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-31T23:15:00.012+08:00  INFO 12772 --- [campushub] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-31T23:15:00.038+08:00  WARN 12772 --- [campushub] [           main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-31T23:15:00.739+08:00  INFO 12772 --- [campushub] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-31T23:15:00.783+08:00  INFO 12772 --- [campushub] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-31T23:15:00.976+08:00  INFO 12772 --- [campushub] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-31T23:15:01.372+08:00  WARN 12772 --- [campushub] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-31T23:15:01.380+08:00  WARN 12772 --- [campushub] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: fffaf4d7-3b93-4105-b9be-eafb846f695b
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-05-31T23:15:01.541+08:00  INFO 12772 --- [campushub] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@3d6527bf, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@46f322ab, org.springframework.security.web.context.SecurityContextHolderFilter@374bbe80, org.springframework.security.web.header.HeaderWriterFilter@17b4d5ab, org.springframework.web.filter.CorsFilter@ae8aade, org.springframework.security.web.authentication.logout.LogoutFilter@1fc4292a, com.campushub.security.JwtAuthenticationFilter@193eb1ba, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@613b9bd9, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@6bddd4ce, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@6a24b9e2, org.springframework.security.web.session.SessionManagementFilter@6bb01b34, org.springframework.security.web.access.ExceptionTranslationFilter@b54a7b9, org.springframework.security.web.access.intercept.AuthorizationFilter@65d3d7d7]
+2026-05-31T23:15:01.649+08:00  INFO 12772 --- [campushub] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path ''
+2026-05-31T23:15:01.654+08:00  INFO 12772 --- [campushub] [           main] com.campushub.CampusHubApplication       : Started CampusHubApplication in 3.262 seconds (process running for 3.47)
+2026-05-31T23:15:11.358+08:00  INFO 12772 --- [campushub] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-31T23:15:11.358+08:00  INFO 12772 --- [campushub] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-31T23:15:11.359+08:00  INFO 12772 --- [campushub] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms

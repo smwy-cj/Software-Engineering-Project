@@ -1,9 +1,7 @@
 package com.campushub.controller;
 
 import com.campushub.common.ApiResponse;
-import com.campushub.dto.request.LoveProfileRequest;
 import com.campushub.service.LoveService;
-import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,21 +16,12 @@ public class LoveController {
         this.loveService = loveService;
     }
 
-    @PutMapping("/profiles/me")
-    public ApiResponse<?> updateProfile(@RequestAttribute("userId") Long userId,
-                                         @Valid @RequestBody LoveProfileRequest req) {
-        return ApiResponse.success("交友资料更新成功", loveService.updateProfile(userId, req));
-    }
-
-    @GetMapping("/profiles")
-    public ApiResponse<?> listProfiles(
-            @RequestParam(required = false) String gender,
-            @RequestParam(required = false) Integer minAge,
-            @RequestParam(required = false) Integer maxAge,
+    @GetMapping("/requests")
+    public ApiResponse<?> listLoveRequests(
+            @RequestParam(defaultValue = "published") String sortBy,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy) {
-        return ApiResponse.success(loveService.listProfiles(gender, minAge, maxAge, page, size, sortBy));
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(loveService.listLoveRequests(sortBy, page, size));
     }
 
     @PostMapping("/requests")

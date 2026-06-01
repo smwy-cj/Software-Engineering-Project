@@ -22,7 +22,7 @@ public class PartnerController {
     @PostMapping("/requests")
     public ApiResponse<?> createRequest(@RequestAttribute("userId") Long userId,
                                          @Valid @RequestBody PartnerReqRequest req) {
-        return ApiResponse.success("搭子需求发布成功，待审核", partnerService.createRequest(userId, req));
+        return ApiResponse.success("搭子需求发布成功", partnerService.createRequest(userId, req));
     }
 
     @GetMapping("/requests")
@@ -43,10 +43,36 @@ public class PartnerController {
                 partnerService.applyMatch(userId, requestId, body.get("message")));
     }
 
+    @PutMapping("/requests/{requestId}/cancel")
+    public ApiResponse<?> cancelRequest(@RequestAttribute("userId") Long userId,
+                                        @PathVariable Long requestId,
+                                        @RequestBody(required = false) Map<String, String> body) {
+        String reason = body != null ? body.get("reason") : null;
+        return ApiResponse.success("搭子需求已撤销",
+                partnerService.cancelRequest(userId, requestId, reason));
+    }
+
+    @GetMapping("/matches")
+    public ApiResponse<?> listMatches(
+            @RequestAttribute("userId") Long userId,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(partnerService.listMatches(userId, status, page, size));
+    }
+
     @GetMapping("/matches/{matchId}")
     public ApiResponse<?> getMatchDetail(@RequestAttribute("userId") Long userId,
-                                          @PathVariable Long matchId) {
+                                           @PathVariable Long matchId) {
         return ApiResponse.success(partnerService.getMatchDetail(userId, matchId));
+    }
+
+    @PutMapping("/matches/{matchId}")
+    public ApiResponse<?> updateMatchStatus(@RequestAttribute("userId") Long userId,
+                                            @PathVariable Long matchId,
+                                            @RequestBody Map<String, String> body) {
+        return ApiResponse.success("匹配状态已更新",
+                partnerService.updateMatchStatus(userId, matchId, body.get("status"), body.get("reason")));
     }
 
     @PostMapping("/matches/{matchId}/reviews")

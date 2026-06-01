@@ -2,7 +2,6 @@ package com.campushub.service;
 
 import com.campushub.common.BusinessException;
 import com.campushub.common.PageResult;
-import com.campushub.dto.request.LoveProfileRequest;
 import com.campushub.entity.*;
 import com.campushub.repository.*;
 import org.springframework.data.domain.Page;
@@ -18,22 +17,25 @@ import java.util.*;
 @Service
 public class LoveService {
 
-    private final LoveProfileRepository loveProfileRepository;
     private final LoveReqRepository loveReqRepository;
     private final LoveMatchRepository loveMatchRepository;
     private final UserCertRepository userCertRepository;
     private final UserRepository userRepository;
+    private final ContentReviewService contentReviewService;
+    private final NotificationService notificationService;
 
-    public LoveService(LoveProfileRepository loveProfileRepository,
-                       LoveReqRepository loveReqRepository,
+    public LoveService(LoveReqRepository loveReqRepository,
                        LoveMatchRepository loveMatchRepository,
                        UserCertRepository userCertRepository,
-                       UserRepository userRepository) {
-        this.loveProfileRepository = loveProfileRepository;
+                       UserRepository userRepository,
+                       ContentReviewService contentReviewService,
+                       NotificationService notificationService) {
         this.loveReqRepository = loveReqRepository;
         this.loveMatchRepository = loveMatchRepository;
         this.userCertRepository = userCertRepository;
         this.userRepository = userRepository;
+        this.contentReviewService = contentReviewService;
+        this.notificationService = notificationService;
     }
 
     private void checkCertified(Long userId) {
@@ -43,89 +45,47 @@ public class LoveService {
         }
     }
 
-    @Transactional
-    public Object updateProfile(Long userId, LoveProfileRequest req) {
-        checkCertified(userId);
+    public PageResult<Map<String, Object>> listLoveRequests(String sortBy, int page, int size) {
+        List<LoveReq> published = new ArrayList<>(loveReqRepository.findByStatus(
+                "PUBLISHED", Sort.by(Sort.Direction.DESC, "createdAt")));
 
-        LoveProfile profile = loveProfileRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    LoveProfile p = new LoveProfile();
-                    p.setUserId(userId);
-                    return p;
-                });
+        if ("interaction".equals(sortBy)) {
+            Map<Long, Integer> interactionRank = new HashMap<>();
+            int rank = 0;
+            for (LoveMatch match : loveMatchRepository.findTop100ByOrderByApplyTimeDesc()) {
+                interactionRank.putIfAbsent(match.getRequestId(), rank++);
+            }
+            published.sort(Comparator
+                    .comparingInt((LoveReq req) -> interactionRank.getOrDefault(req.getId(), Integer.MAX_VALUE))
+                    .thenComparing(LoveReq::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
+        }
 
-        profile.setGender(req.getGender());
-        profile.setAge(req.getAge());
-        profile.setHeight(req.getHeight());
-        profile.setWeight(req.getWeight());
-        profile.setConstellation(req.getConstellation());
-        profile.setInterests(req.getInterests());
-        profile.setMatePreference(req.getMatePreference());
-        profile.setDeclaration(req.getDeclaration());
-        profile.setVisibility(req.getVisibility() != null ? req.getVisibility() : "all");
-
-        int completeness = 0;
-        if (req.getGender() != null) completeness += 20;
-        if (req.getAge() > 0) completeness += 15;
-        if (req.getHeight() != null) completeness += 10;
-        if (req.getInterests() != null) completeness += 15;
-        if (req.getMatePreference() != null) completeness += 20;
-        if (req.getDeclaration() != null) completeness += 20;
-        profile.setCompleteness(Math.min(completeness, 100));
-
-        profile = loveProfileRepository.save(profile);
-
-        var resp = new LinkedHashMap<String, Object>();
-        resp.put("profileId", profile.getId());
-        resp.put("completeness", profile.getCompleteness());
-        return resp;
-    }
-
-    public PageResult<Map<String, Object>> listProfiles(String gender, Integer minAge, Integer maxAge,
-                                                         int page, int size, String sortBy) {
-        Sort sort = Sort.by("matchCount".equals(sortBy) ? Sort.Direction.DESC : Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
-        Page<LoveProfile> result = loveProfileRepository.findPublicProfiles(gender, minAge, maxAge, pageable);
+        int safePage = Math.max(1, page);
+        int safeSize = Math.max(1, Math.min(50, size));
+        int fromIndex = Math.min((safePage - 1) * safeSize, published.size());
+        int toIndex = Math.min(fromIndex + safeSize, published.size());
 
         List<Map<String, Object>> content = new ArrayList<>();
-        for (LoveProfile lp : result.getContent()) {
-            Map<String, Object> item = new LinkedHashMap<>();
-            User user = userRepository.findById(lp.getUserId()).orElse(null);
-            UserCert cert = userCertRepository.findByUserId(lp.getUserId()).orElse(null);
-            item.put("userId", lp.getUserId());
-            item.put("nickname", user != null ? user.getUsername() : "");
-            item.put("age", lp.getAge());
-            item.put("university", cert != null ? cert.getUniversity() : "");
-            item.put("major", cert != null ? cert.getMajor() : "");
-            item.put("interests", lp.getInterests());
-            item.put("declaration", lp.getDeclaration());
-            item.put("photos", lp.getPhotos());
-            item.put("matchCount", 0);
-            content.add(item);
+        for (LoveReq req : published.subList(fromIndex, toIndex)) {
+            content.add(toLoveRequestItem(req));
         }
-        return new PageResult<>(content, page, size, result.getTotalElements());
+        return new PageResult<>(content, safePage, safeSize, published.size());
     }
 
     @Transactional
     public Object createLoveRequest(Long userId, String description, int validDays, String scope) {
         checkCertified(userId);
 
-        LoveProfile profile = loveProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(40003, "请先完善交友资料"));
-
-        if (profile.getCompleteness() < 80) {
-            throw new BusinessException(40003, "交友资料完整度需达到80%才能发布需求");
-        }
-
         LoveReq req = new LoveReq();
         req.setUserId(userId);
-        req.setProfileId(profile.getId());
+        req.setProfileId(null);
         req.setDescription(description);
         req.setValidDays(Math.max(1, Math.min(14, validDays)));
         req.setScope(scope != null ? scope : "sameSchool");
-        req.setStatus("PUBLISHED");
+        req.setStatus("PENDING");
         req.setExpireTime(LocalDateTime.now().plusDays(req.getValidDays()));
         req = loveReqRepository.save(req);
+        contentReviewService.submitForReview("loveReq", req.getId(), userId, description);
 
         var resp = new LinkedHashMap<String, Object>();
         resp.put("requestId", req.getId());
@@ -150,15 +110,32 @@ public class LoveService {
             throw new BusinessException(40003, "您已发送过心动");
         }
 
+        Optional<LoveReq> myPublishedReq = loveReqRepository.findFirstByUserIdAndStatusOrderByCreatedAtDesc(userId, "PUBLISHED");
+        Optional<LoveMatch> reverseMatch = myPublishedReq
+                .flatMap(myReq -> loveMatchRepository.findByRequestIdAndApplicantId(myReq.getId(), req.getUserId()));
+        boolean accepted = reverseMatch.isPresent();
+
         LoveMatch match = new LoveMatch();
         match.setRequestId(requestId);
         match.setApplicantId(userId);
-        match.setStatus("PENDING");
+        match.setStatus(accepted ? "ACCEPTED" : "PENDING");
+        if (accepted) {
+            match.setResponseTime(LocalDateTime.now());
+            reverseMatch.get().setStatus("ACCEPTED");
+            reverseMatch.get().setResponseTime(LocalDateTime.now());
+            loveMatchRepository.save(reverseMatch.get());
+        }
         match = loveMatchRepository.save(match);
+        if (accepted) {
+            notificationService.createNotification(req.getUserId(), "love_match",
+                    "双向心动匹配成功", "你们已双向心动，可以开始交流", "loveMatch", match.getId());
+            notificationService.createNotification(userId, "love_match",
+                    "双向心动匹配成功", "你们已双向心动，可以开始交流", "loveMatch", match.getId());
+        }
 
         var resp = new LinkedHashMap<String, Object>();
         resp.put("matchId", match.getId());
-        resp.put("status", "PENDING");
+        resp.put("status", match.getStatus());
         return resp;
     }
 
@@ -185,5 +162,29 @@ public class LoveService {
             content.add(item);
         }
         return new PageResult<>(content, page, size, result.getTotalElements());
+    }
+
+    private Map<String, Object> toLoveRequestItem(LoveReq req) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        User user = userRepository.findById(req.getUserId()).orElse(null);
+        UserCert cert = userCertRepository.findByUserId(req.getUserId()).orElse(null);
+
+        item.put("requestId", req.getId());
+        item.put("description", req.getDescription());
+        item.put("scope", req.getScope());
+        item.put("status", req.getStatus());
+        item.put("validDays", req.getValidDays());
+        item.put("createdAt", req.getCreatedAt());
+        item.put("expireAt", req.getExpireTime());
+        Map<String, Object> publisherInfo = new LinkedHashMap<>();
+        publisherInfo.put("userId", req.getUserId());
+        publisherInfo.put("nickname", user != null ? user.getUsername() : "同学");
+        publisherInfo.put("avatar", user != null && user.getAvatar() != null ? user.getAvatar() : "");
+        publisherInfo.put("gender", cert != null ? cert.getGender() : "");
+        publisherInfo.put("age", cert != null ? cert.getAge() : 0);
+        publisherInfo.put("major", cert != null ? cert.getMajor() : "");
+        publisherInfo.put("university", cert != null ? cert.getUniversity() : "");
+        item.put("publisherInfo", publisherInfo);
+        return item;
     }
 }

@@ -20,29 +20,40 @@ public class TreeHoleService {
     private final TreeHoleCommentRepository commentRepository;
     private final TreeHoleLikeRepository likeRepository;
     private final UserRepository userRepository;
+    private final UserCertRepository userCertRepository;
+    private final ContentReviewService contentReviewService;
 
     public TreeHoleService(TreeHolePostRepository postRepository,
                            TreeHoleCommentRepository commentRepository,
                            TreeHoleLikeRepository likeRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           UserCertRepository userCertRepository,
+                           ContentReviewService contentReviewService) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.likeRepository = likeRepository;
         this.userRepository = userRepository;
+        this.userCertRepository = userCertRepository;
+        this.contentReviewService = contentReviewService;
     }
 
     @Transactional
-    public Object createPost(Long userId, String content, String category, boolean anonymous) {
+    public Object createPost(Long userId, String content, String category, boolean allowComment, boolean allowLike) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(40401, "用户不存在"));
+        checkCanPublish(user);
+        requireLength(content, 10, 800, "树洞内容");
 
         TreeHolePost post = new TreeHolePost();
         post.setUserId(userId);
         post.setContent(content);
         post.setCategory(category != null ? category : "other");
-        post.setAnonymousName(anonymous ? generateAnonymousName() : user.getUsername());
-        post.setStatus("PUBLISHED");
+        post.setAnonymousName(generateAnonymousName());
+        post.setCommentEnabled(allowComment);
+        post.setLikeEnabled(allowLike);
+        post.setStatus("PENDING");
         post = postRepository.save(post);
+        contentReviewService.submitForReview("treeholePost", post.getId(), userId, content);
 
         var resp = new LinkedHashMap<String, Object>();
         resp.put("postId", post.getId());
@@ -102,6 +113,15 @@ public class TreeHoleService {
     public Object toggleLike(Long userId, Long postId) {
         TreeHolePost post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(40401, "动态不存在"));
+        if (!"PUBLISHED".equals(post.getStatus())) {
+            throw new BusinessException(40401, "动态不存在");
+        }
+        if (!post.isLikeEnabled()) {
+            throw new BusinessException(40003, "该动态不允许点赞");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(40401, "用户不存在"));
+        checkCanPublish(user);
 
         Optional<TreeHoleLike> existing = likeRepository.findByPostIdAndUserId(postId, userId);
         boolean liked;
@@ -129,15 +149,24 @@ public class TreeHoleService {
     public Object addComment(Long userId, Long postId, String content, Long parentId) {
         TreeHolePost post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(40401, "动态不存在"));
+        if (!"PUBLISHED".equals(post.getStatus())) {
+            throw new BusinessException(40401, "动态不存在");
+        }
+        if (!post.isCommentEnabled()) {
+            throw new BusinessException(40003, "该动态不允许评论");
+        }
+        requireLength(content, 1, 100, "评论内容");
 
-        User user = userRepository.findById(userId).orElse(null);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(40401, "用户不存在"));
+        checkCanPublish(user);
 
         TreeHoleComment comment = new TreeHoleComment();
         comment.setPostId(postId);
         comment.setUserId(userId);
         comment.setContent(content);
         comment.setParentId(parentId);
-        comment.setAnonymousName(user != null ? user.getUsername() : "匿名用户");
+        comment.setAnonymousName(generateAnonymousName());
         comment.setStatus("PUBLISHED");
         comment = commentRepository.save(comment);
 
@@ -169,5 +198,25 @@ public class TreeHoleService {
 
     private String generateAnonymousName() {
         return "匿名小友" + (100 + new Random().nextInt(900));
+    }
+
+    private void checkCanPublish(User user) {
+        if ("BANNED".equals(user.getAccountStatus())) {
+            throw new BusinessException(40103, "账号已被封禁");
+        }
+        if ("MUTED".equals(user.getAccountStatus())) {
+            throw new BusinessException(40303, "您当前处于禁言期，无法发布及互动内容");
+        }
+        UserCert cert = userCertRepository.findByUserId(user.getId()).orElse(null);
+        if (cert == null || !"CERTIFIED".equals(cert.getCertStatus())) {
+            throw new BusinessException(40302, "请先完成实名认证");
+        }
+    }
+
+    private void requireLength(String value, int min, int max, String field) {
+        int length = value == null ? 0 : value.trim().length();
+        if (length < min || length > max) {
+            throw new BusinessException(40001, field + "长度需为" + min + "-" + max + "字");
+        }
     }
 }

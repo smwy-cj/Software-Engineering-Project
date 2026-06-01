@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface TreeHolePostRepository extends JpaRepository<TreeHolePost, Long> {
     @Query("SELECT p FROM TreeHolePost p WHERE p.status = 'PUBLISHED' AND p.isDeleted = false " +
            "AND (:category IS NULL OR p.category = :category) " +
@@ -16,4 +18,6 @@ public interface TreeHolePostRepository extends JpaRepository<TreeHolePost, Long
                                        Pageable pageable);
 
     Page<TreeHolePost> findByStatusAndIsDeletedFalse(String status, Pageable pageable);
+
+    List<TreeHolePost> findTop20ByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(Long userId);
 }

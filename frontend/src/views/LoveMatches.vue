@@ -1,17 +1,34 @@
 <template>
-  <div>
-    <h1 class="page-title">我的匹配</h1>
-    <div class="card">
-      <div v-if="matches.length === 0" class="empty-state">暂无匹配记录</div>
-      <div v-for="m in matches" :key="m.matchId" class="post-item">
-        <div class="post-header">
-          <strong>{{ m.partner?.nickname }}</strong>
-          <span class="tag">{{ m.status }}</span>
-        </div>
-        <p>匹配时间：{{ formatTime(m.createdAt) }}</p>
+  <main class="business-page love-matches-page glass-page">
+    <section class="business-hero love-hero glass-surface">
+      <div>
+        <span class="hero-kicker">我的匹配</span>
+        <h1>心动互动记录</h1>
+        <p>查看已经建立的匹配关系，保留每一次认真靠近的痕迹。</p>
       </div>
-    </div>
-  </div>
+      <aside class="business-side-card glass-mini-card">
+        <span class="glass-tag">匹配数量</span>
+        <strong>{{ matches.length }}</strong>
+        <p>条历史记录</p>
+      </aside>
+    </section>
+
+    <section class="glass-surface notification-panel">
+      <div v-if="matches.length === 0" class="empty-state empty-love">今天还没有心动留言，勇敢一点也许会遇见惊喜。</div>
+      <div v-else class="notification-list">
+        <article v-for="m in matches" :key="m.matchId" class="notification-item glass-mini-card">
+          <div class="feed-avatar"></div>
+          <div class="notification-body">
+            <div class="post-header">
+              <strong>{{ m.partner?.nickname || '同学' }}</strong>
+              <span class="glass-tag">{{ m.status }}</span>
+            </div>
+            <p>匹配时间：{{ formatTime(m.createdAt) }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
 </template>
 
 <script setup>

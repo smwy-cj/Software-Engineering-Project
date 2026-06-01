@@ -18,6 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = res.data.data.userInfo
     localStorage.setItem('token', token.value)
     localStorage.setItem('user', JSON.stringify(user.value))
+    await refreshUnreadCount()
     return res.data
   }
 
@@ -26,12 +27,37 @@ export const useAuthStore = defineStore('auth', () => {
     return res.data
   }
 
+  async function getCaptcha() {
+    const res = await api.get('/auth/captcha')
+    return res.data.data
+  }
+
+  async function refreshUnreadCount() {
+    if (!token.value) {
+      unreadCount.value = 0
+      return 0
+    }
+    try {
+      const res = await api.get('/notifications', { params: { page: 1, size: 1 } })
+      unreadCount.value = res.data.data.unreadCount || 0
+    } catch (e) {
+      unreadCount.value = 0
+    }
+    return unreadCount.value
+  }
+
   function logout() {
     token.value = ''
     user.value = null
+    unreadCount.value = 0
     localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
 
-  return { token, user, unreadCount, isLoggedIn, isAdmin, login, register, logout }
+  function updateUserInfo(partial) {
+    user.value = { ...(user.value || {}), ...partial }
+    localStorage.setItem('user', JSON.stringify(user.value))
+  }
+
+  return { token, user, unreadCount, isLoggedIn, isAdmin, login, register, getCaptcha, refreshUnreadCount, logout, updateUserInfo }
 })

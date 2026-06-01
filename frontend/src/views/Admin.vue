@@ -1,54 +1,78 @@
 <template>
-  <div>
-    <h1 class="page-title">管理后台</h1>
-
-    <div class="card">
-      <h3>待审核内容</h3>
-      <div v-if="reviews.length === 0" class="empty-state">暂无待审核内容</div>
-      <div v-for="r in reviews" :key="r.reviewId" class="post-item">
-        <span class="tag">{{ r.contentType }}</span>
-        <span>内容ID: {{ r.contentId }}</span>
-        <span>用户ID: {{ r.userId }}</span>
-        <div style="margin-top:8px;">
-          <button class="btn-sm btn-success" @click="reviewItem(r.reviewId, 'PASSED')">通过</button>
-          <button class="btn-sm btn-danger" style="margin-left:8px;" @click="reviewItem(r.reviewId, 'REJECTED')">驳回</button>
-        </div>
+  <main class="business-page admin-page glass-page">
+    <section class="business-hero glass-surface">
+      <div>
+        <span class="hero-kicker">管理后台</span>
+        <h1>内容与用户治理</h1>
+        <p>审核内容、处理反馈，并保持校园社区的温和秩序。</p>
       </div>
-    </div>
+      <aside class="business-side-card glass-mini-card">
+        <span class="glass-tag">待处理</span>
+        <strong>{{ reviews.length + feedbacks.length }}</strong>
+        <p>条审核与反馈事项</p>
+      </aside>
+    </section>
 
-    <div class="card">
+    <section class="glass-surface admin-panel">
+      <h3>待审核内容</h3>
+      <div v-if="reviews.length === 0" class="empty-state empty-admin">当前没有待审核内容，系统很平静。</div>
+      <div class="admin-list">
+        <article v-for="r in reviews" :key="r.reviewId" class="admin-item glass-mini-card">
+          <div class="admin-item-meta">
+            <span class="glass-tag">{{ r.contentType }}</span>
+            <span>内容ID: {{ r.contentId }}</span>
+            <span>用户ID: {{ r.userId }}</span>
+          </div>
+          <div class="admin-actions">
+            <button class="glass-button-secondary success-action" @click="reviewItem(r.reviewId, 'PASSED')">通过</button>
+            <button class="glass-button-secondary danger-action" @click="reviewItem(r.reviewId, 'REJECTED')">驳回</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="glass-surface admin-panel">
       <h3>用户管理</h3>
-      <div class="form-group">
-        <label>用户ID</label>
-        <input v-model.number="banUserId" type="number" placeholder="输入要处理的用户ID" />
-        <select v-model="banAction" style="margin-top:8px;">
-          <option value="WARNED">警告</option>
-          <option value="MUTED">禁言</option>
-          <option value="BANNED">封禁</option>
-        </select>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>用户ID</label>
+          <input class="glass-input" v-model.number="banUserId" type="number" placeholder="输入要处理的用户ID" />
+        </div>
+        <div class="form-group">
+          <label>处罚动作</label>
+          <select class="glass-input" v-model="banAction">
+            <option value="WARNED">警告</option>
+            <option value="MUTED">禁言</option>
+            <option value="BANNED">封禁</option>
+          </select>
+        </div>
       </div>
       <div class="form-group">
         <label>原因</label>
-        <input v-model="banReason" placeholder="处罚原因" />
+        <input class="glass-input" v-model="banReason" placeholder="处罚原因" />
       </div>
-      <button class="btn btn-danger" @click="banUser">执行处罚</button>
-    </div>
+      <button class="glass-button-primary danger-primary" @click="banUser">执行处罚</button>
+    </section>
 
-    <div class="card">
+    <section class="glass-surface admin-panel">
       <h3>反馈列表</h3>
-      <div v-if="feedbacks.length === 0" class="empty-state">暂无反馈</div>
-      <div v-for="f in feedbacks" :key="f.feedbackNumber" class="post-item">
-        <span class="tag">{{ f.type }}</span>
-        <strong>{{ f.feedbackNumber }}</strong>
-        <span style="margin-left:8px;">{{ f.status }}</span>
-        <p>{{ f.content }}</p>
-        <small>来自：{{ f.userInfo?.nickname }}</small>
-        <div style="margin-top:4px;">
-          <button class="btn-sm" @click="processFeedback(f.feedbackNumber)">处理</button>
-        </div>
+      <div v-if="feedbacks.length === 0" class="empty-state empty-admin">当前没有新的反馈，社区秩序保持稳定。</div>
+      <div class="admin-list">
+        <article v-for="f in feedbacks" :key="f.feedbackNumber" class="admin-item glass-mini-card">
+          <div class="admin-item-meta">
+            <span class="glass-tag">{{ f.type }}</span>
+            <strong>{{ f.feedbackNumber }}</strong>
+            <span class="glass-tag">{{ f.status }}</span>
+          </div>
+          <p>{{ f.content }}</p>
+          <small>来自：{{ f.userInfo?.nickname }}</small>
+          <div class="admin-actions">
+            <button class="glass-button-secondary" @click="processFeedback(f.feedbackNumber)">处理</button>
+          </div>
+        </article>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </template>
 
 <script setup>

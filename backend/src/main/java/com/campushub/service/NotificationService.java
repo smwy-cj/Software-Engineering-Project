@@ -36,12 +36,10 @@ public class NotificationService {
 
     public Map<String, Object> listNotifications(Long userId, String type, Boolean isRead, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Notification> result = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        Page<Notification> result = notificationRepository.findFiltered(userId, type, isRead, pageable);
 
         List<Map<String, Object>> content = new ArrayList<>();
         for (Notification n : result.getContent()) {
-            if (type != null && !type.equals(n.getType())) continue;
-            if (isRead != null && isRead != n.getIsRead()) continue;
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", n.getId());
             item.put("type", n.getType());

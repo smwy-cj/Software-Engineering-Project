@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface PartnerReqRepository extends JpaRepository<PartnerReq, Long> {
     @Query("SELECT p FROM PartnerReq p WHERE p.status = 'PUBLISHED' AND p.isDeleted = false " +
            "AND (:type IS NULL OR p.type = :type) " +
@@ -14,4 +16,6 @@ public interface PartnerReqRepository extends JpaRepository<PartnerReq, Long> {
     Page<PartnerReq> findPublicRequests(@Param("type") String type,
                                         @Param("keyword") String keyword,
                                         Pageable pageable);
+
+    List<PartnerReq> findTop20ByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(Long userId);
 }

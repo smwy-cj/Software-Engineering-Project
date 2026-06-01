@@ -15,11 +15,11 @@ public class PartnerReq {
     @Column(nullable = false, length = 16)
     private String type;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 800)
     private String description;
 
     @Column(nullable = false, length = 512)
-    private String conditions;
+    private String conditions = "{}";
 
     @Column(length = 512)
     private String images;
@@ -47,6 +47,12 @@ public class PartnerReq {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
+
+    @Column(name = "cancel_reason", length = 256)
+    private String cancelReason;
 
     @PrePersist void onCreate() { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now(); }
     @PreUpdate void onUpdate() { updatedAt = LocalDateTime.now(); }
@@ -77,4 +83,8 @@ public class PartnerReq {
     public void setExpireTime(LocalDateTime expireTime) { this.expireTime = expireTime; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public LocalDateTime getCanceledAt() { return canceledAt; }
+    public void setCanceledAt(LocalDateTime canceledAt) { this.canceledAt = canceledAt; }
+    public String getCancelReason() { return cancelReason; }
+    public void setCancelReason(String cancelReason) { this.cancelReason = cancelReason; }
 }

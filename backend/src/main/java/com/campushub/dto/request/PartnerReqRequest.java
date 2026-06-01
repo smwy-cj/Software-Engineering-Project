@@ -7,7 +7,7 @@ public class PartnerReqRequest {
     @NotBlank
     private String type;
 
-    @NotBlank @Size(min = 10, max = 200)
+    @NotBlank @Size(max = 800)
     private String description;
 
     private String conditions;

@@ -8,6 +8,7 @@ public class ApiResponse<T> {
     private int code;
     private String message;
     private T data;
+    private Object errors;
     private long timestamp;
 
     private ApiResponse() {
@@ -40,5 +41,7 @@ public class ApiResponse<T> {
     public int getCode() { return code; }
     public String getMessage() { return message; }
     public T getData() { return data; }
+    public Object getErrors() { return errors; }
+    public void setErrors(Object errors) { this.errors = errors; }
     public long getTimestamp() { return timestamp; }
 }

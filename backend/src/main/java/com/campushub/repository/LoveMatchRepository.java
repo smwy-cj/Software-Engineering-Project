@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.util.List;
 import java.util.Optional;
 
 public interface LoveMatchRepository extends JpaRepository<LoveMatch, Long> {
@@ -14,4 +15,8 @@ public interface LoveMatchRepository extends JpaRepository<LoveMatch, Long> {
     @Query("SELECT m FROM LoveMatch m WHERE m.applicantId = :userId OR m.requestId IN " +
            "(SELECT r.id FROM LoveReq r WHERE r.userId = :userId)")
     Page<LoveMatch> findByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    List<LoveMatch> findTop100ByOrderByApplyTimeDesc();
+
+    List<LoveMatch> findTop20ByApplicantIdOrderByApplyTimeDesc(Long applicantId);
 }

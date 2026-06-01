@@ -11,6 +11,14 @@ import org.springframework.data.repository.query.Param;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     Page<Notification> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    @Query("SELECT n FROM Notification n WHERE n.userId = :userId " +
+           "AND (:type IS NULL OR n.type = :type) " +
+           "AND (:isRead IS NULL OR n.isRead = :isRead)")
+    Page<Notification> findFiltered(@Param("userId") Long userId,
+                                    @Param("type") String type,
+                                    @Param("isRead") Boolean isRead,
+                                    Pageable pageable);
+
     long countByUserIdAndIsReadFalse(Long userId);
 
     @Modifying

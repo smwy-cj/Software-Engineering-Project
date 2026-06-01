@@ -8,8 +8,13 @@ import com.campushub.security.JwtTokenProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
 @Service
 public class UserService {
@@ -19,6 +24,11 @@ public class UserService {
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final Map<String, CaptchaEntry> captchaStore = new ConcurrentHashMap<>();
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d).{8,}$");
+    private static final String CAPTCHA_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final long CAPTCHA_TTL_SECONDS = 300;
 
     public UserService(UserRepository userRepository, UserCertRepository userCertRepository,
                        AdminRepository adminRepository, PasswordEncoder passwordEncoder,
@@ -35,15 +45,13 @@ public class UserService {
         if (!req.isAgreeTerms()) {
             throw new BusinessException(40003, "请先同意用户协议和隐私政策");
         }
+        validateRegisterInput(req);
+        verifyCaptcha(req.getCaptchaId(), req.getCaptchaCode());
         if (userRepository.existsByPhone(req.getPhone())) {
             throw new BusinessException(40901, "该手机号已注册");
         }
         if (userRepository.existsByUsername(req.getUsername())) {
             throw new BusinessException(40901, "该用户名已被占用");
-        }
-        // Mock SMS verification
-        if (!"123456".equals(req.getSmsCode())) {
-            throw new BusinessException(40003, "短信验证码错误或已过期");
         }
 
         User user = new User();
@@ -62,6 +70,9 @@ public class UserService {
     }
 
     public LoginResponse login(LoginRequest req) {
+        if (!StringUtils.hasText(req.getCaptcha()) || !StringUtils.hasText(req.getCaptchaId())) {
+            throw new BusinessException(40003, "请先完成图形验证码验证");
+        }
         User user = userRepository.findByPhone(req.getPhone())
                 .orElseThrow(() -> new BusinessException(40101, "手机号或密码错误"));
 
@@ -75,11 +86,11 @@ public class UserService {
         if ("password".equals(req.getLoginType())) {
             if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
                 user.setLoginFailCnt(user.getLoginFailCnt() + 1);
-                if (user.getLoginFailCnt() >= 5) {
+                if (user.getLoginFailCnt() >= 3) {
                     user.setLockedUntil(LocalDateTime.now().plusMinutes(15));
                 }
                 userRepository.save(user);
-                int remaining = 5 - user.getLoginFailCnt();
+                int remaining = 3 - user.getLoginFailCnt();
                 throw new BusinessException(40101,
                         "手机号或密码错误，还剩 " + Math.max(0, remaining) + " 次尝试机会");
             }
@@ -97,10 +108,11 @@ public class UserService {
         UserCert cert = userCertRepository.findByUserId(user.getId()).orElse(null);
         Admin admin = adminRepository.findByUserId(user.getId()).orElse(null);
 
-        String token = jwtTokenProvider.generateAccessToken(user.getId(), user.getUsername());
+        String role = admin != null ? "ADMIN" : "USER";
+        String token = jwtTokenProvider.generateAccessToken(user.getId(), user.getUsername(), role, req.isRememberMe());
         LoginResponse resp = new LoginResponse();
         resp.setAccessToken(token);
-        resp.setExpiresIn(7200);
+        resp.setExpiresIn(req.isRememberMe() ? 604800 : 7200);
 
         LoginResponse.UserInfo info = new LoginResponse.UserInfo();
         info.setUserId(user.getId());
@@ -122,8 +134,12 @@ public class UserService {
 
     public Object getCaptcha() {
         var resp = new java.util.LinkedHashMap<String, Object>();
-        resp.put("captchaId", "captcha-" + System.currentTimeMillis());
-        resp.put("captchaImage", "data:image/png;base64,mock-captcha-image");
+        String captchaId = "captcha-" + System.currentTimeMillis() + "-" + ThreadLocalRandom.current().nextInt(1000, 9999);
+        String captchaCode = generateCaptchaCode();
+        captchaStore.put(captchaId, new CaptchaEntry(captchaCode, LocalDateTime.now().plusSeconds(CAPTCHA_TTL_SECONDS)));
+        resp.put("captchaId", captchaId);
+        resp.put("captchaCode", captchaCode);
+        resp.put("expiresIn", CAPTCHA_TTL_SECONDS);
         return resp;
     }
 
@@ -151,18 +167,57 @@ public class UserService {
 
     public Object getCertStatus(Long userId) {
         UserCert cert = userCertRepository.findByUserId(userId).orElse(null);
+        User user = userRepository.findById(userId).orElse(null);
         var resp = new java.util.LinkedHashMap<String, Object>();
+        if (user != null) {
+            resp.put("userId", user.getId());
+            resp.put("username", user.getUsername());
+            resp.put("avatar", user.getAvatar());
+        }
         if (cert != null) {
             resp.put("certStatus", cert.getCertStatus());
             resp.put("university", cert.getUniversity());
             resp.put("major", cert.getMajor());
             resp.put("grade", cert.getGrade());
+            resp.put("enrollmentYear", parseEnrollmentYear(cert.getGrade()));
             resp.put("gender", cert.getGender());
             resp.put("age", cert.getAge());
+            resp.put("height", cert.getHeight());
+            resp.put("signature", cert.getSignature());
         } else {
             resp.put("certStatus", "UNCERTIFIED");
         }
         return resp;
+    }
+
+    @Transactional
+    public Object updateProfile(Long userId, UserProfileRequest req) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(40401, "用户不存在"));
+        UserCert cert = userCertRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(40302, "请先完成实名认证"));
+        if (!"CERTIFIED".equals(cert.getCertStatus())) {
+            throw new BusinessException(40302, "请先完成实名认证");
+        }
+
+        String newUsername = req.getUsername().trim();
+        if (!newUsername.equals(user.getUsername()) && userRepository.existsByUsername(newUsername)) {
+            throw new BusinessException(40901, "该用户名已被占用");
+        }
+
+        user.setUsername(newUsername);
+        user.setAvatar(StringUtils.hasText(req.getAvatar()) ? req.getAvatar().trim() : null);
+        userRepository.save(user);
+
+        cert.setGender(req.getGender());
+        cert.setAge(req.getAge());
+        cert.setGrade(req.getEnrollmentYear() + "级");
+        cert.setHeight(req.getHeight());
+        cert.setMajor(req.getMajor());
+        cert.setSignature(req.getSignature());
+        userCertRepository.save(cert);
+
+        return buildProfileResponse(user, cert);
     }
 
     private String maskPhone(String phone) {
@@ -171,4 +226,71 @@ public class UserService {
         }
         return phone;
     }
+
+    private java.util.Map<String, Object> buildProfileResponse(User user, UserCert cert) {
+        var resp = new java.util.LinkedHashMap<String, Object>();
+        resp.put("userId", user.getId());
+        resp.put("username", user.getUsername());
+        resp.put("avatar", user.getAvatar());
+        resp.put("certStatus", cert.getCertStatus());
+        resp.put("gender", cert.getGender());
+        resp.put("age", cert.getAge());
+        resp.put("enrollmentYear", parseEnrollmentYear(cert.getGrade()));
+        resp.put("grade", cert.getGrade());
+        resp.put("height", cert.getHeight());
+        resp.put("major", cert.getMajor());
+        resp.put("signature", cert.getSignature());
+        return resp;
+    }
+
+    private Integer parseEnrollmentYear(String grade) {
+        if (!StringUtils.hasText(grade) || grade.length() < 4) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(grade.substring(0, 4));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private void validateRegisterInput(RegisterRequest req) {
+        if (req.getPhone() == null || !PHONE_PATTERN.matcher(req.getPhone()).matches()) {
+            throw new BusinessException(40001, "手机号格式不正确");
+        }
+        if (!StringUtils.hasText(req.getUsername()) || req.getUsername().length() > 16) {
+            throw new BusinessException(40001, "用户名不能为空且不能超过16位");
+        }
+        if (req.getPassword() == null || !PASSWORD_PATTERN.matcher(req.getPassword()).matches()) {
+            throw new BusinessException(40001, "密码至少8位且必须包含英文字母和数字");
+        }
+        if (!req.getPassword().equals(req.getConfirmPassword())) {
+            throw new BusinessException(40003, "两次输入的密码不一致");
+        }
+    }
+
+    private void verifyCaptcha(String captchaId, String captchaCode) {
+        if (!StringUtils.hasText(captchaId) || !StringUtils.hasText(captchaCode)) {
+            throw new BusinessException(40003, "请输入验证码");
+        }
+        CaptchaEntry entry = captchaStore.get(captchaId);
+        if (entry == null || entry.expiresAt().isBefore(LocalDateTime.now())) {
+            captchaStore.remove(captchaId);
+            throw new BusinessException(40003, "验证码错误或已过期");
+        }
+        if (!entry.code().equals(captchaCode)) {
+            throw new BusinessException(40003, "验证码错误或已过期");
+        }
+        captchaStore.remove(captchaId);
+    }
+
+    private String generateCaptchaCode() {
+        StringBuilder code = new StringBuilder(4);
+        for (int i = 0; i < 4; i++) {
+            code.append(CAPTCHA_CHARS.charAt(ThreadLocalRandom.current().nextInt(CAPTCHA_CHARS.length())));
+        }
+        return code.toString();
+    }
+
+    private record CaptchaEntry(String code, LocalDateTime expiresAt) {}
 }

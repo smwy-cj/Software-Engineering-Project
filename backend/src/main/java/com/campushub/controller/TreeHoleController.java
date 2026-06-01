@@ -38,8 +38,9 @@ public class TreeHoleController {
                                       @RequestBody Map<String, Object> body) {
         String content = (String) body.get("content");
         String category = (String) body.get("category");
-        boolean anonymous = body.get("anonymous") instanceof Boolean b && b;
-        return ApiResponse.success("发布成功", treeHoleService.createPost(userId, content, category, anonymous));
+        boolean allowComment = !(body.get("allowComment") instanceof Boolean b) || b;
+        boolean allowLike = !(body.get("allowLike") instanceof Boolean b) || b;
+        return ApiResponse.success("发布成功，待审核", treeHoleService.createPost(userId, content, category, allowComment, allowLike));
     }
 
     @PostMapping("/posts/{postId}/like")

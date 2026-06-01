@@ -31,12 +31,9 @@ public class GlobalExceptionHandler {
             err.put("message", fe.getDefaultMessage());
             errors.add(err);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put("code", 40001);
-        body.put("message", "参数校验失败");
-        body.put("errors", errors);
-        body.put("timestamp", System.currentTimeMillis());
-        return ResponseEntity.badRequest().body(null);
+        ApiResponse<Object> body = ApiResponse.error(40001, "参数校验失败");
+        body.setErrors(errors);
+        return ResponseEntity.badRequest().body(body);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

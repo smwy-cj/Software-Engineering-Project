@@ -23,16 +23,19 @@ public class AdminService {
     private final ReviewRecordRepository reviewRecordRepository;
     private final FeedbackRepository feedbackRepository;
     private final NotificationService notificationService;
+    private final ContentReviewService contentReviewService;
 
     public AdminService(AdminRepository adminRepository, UserRepository userRepository,
                         ReviewRecordRepository reviewRecordRepository,
                         FeedbackRepository feedbackRepository,
-                        NotificationService notificationService) {
+                        NotificationService notificationService,
+                        ContentReviewService contentReviewService) {
         this.adminRepository = adminRepository;
         this.userRepository = userRepository;
         this.reviewRecordRepository = reviewRecordRepository;
         this.feedbackRepository = feedbackRepository;
         this.notificationService = notificationService;
+        this.contentReviewService = contentReviewService;
     }
 
     private void checkAdmin(Long userId) {
@@ -97,6 +100,7 @@ public class AdminService {
         reviewRecord.setComment(comment);
         reviewRecord.setReviewTime(LocalDateTime.now());
         reviewRecordRepository.save(reviewRecord);
+        contentReviewService.applyReviewResult(reviewRecord.getContentType(), reviewRecord.getContentId(), result);
 
         notificationService.createNotification(reviewRecord.getUserId(), "admin",
                 "审核结果通知", "您的内容审核结果：" + result, reviewRecord.getContentType(), reviewRecord.getContentId());
@@ -148,11 +152,10 @@ public class AdminService {
 
     public PageResult<Map<String, Object>> listMyFeedback(Long userId, String status, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Feedback> result = feedbackRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        Page<Feedback> result = feedbackRepository.findMyFiltered(userId, status, pageable);
 
         List<Map<String, Object>> content = new ArrayList<>();
         for (Feedback f : result.getContent()) {
-            if (status != null && !status.equals(f.getStatus())) continue;
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("feedbackNumber", f.getFeedbackNumber());
             item.put("type", f.getType());
@@ -168,13 +171,10 @@ public class AdminService {
     public PageResult<Map<String, Object>> listAllFeedback(Long adminUserId, String status, String type, int page, int size) {
         checkAdmin(adminUserId);
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Feedback> result = status != null ?
-                feedbackRepository.findByStatus(status, pageable) :
-                feedbackRepository.findAll(pageable);
+        Page<Feedback> result = feedbackRepository.findAllFiltered(status, type, pageable);
 
         List<Map<String, Object>> content = new ArrayList<>();
         for (Feedback f : result.getContent()) {
-            if (type != null && !type.equals(f.getType())) continue;
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("feedbackNumber", f.getFeedbackNumber());
             item.put("type", f.getType());
@@ -200,5 +200,8 @@ public class AdminService {
         feedback.setProcessComment(comment);
         feedback.setProcessedAt(LocalDateTime.now());
         feedbackRepository.save(feedback);
+        notificationService.createNotification(feedback.getUserId(), "feedback",
+                "反馈处理状态更新", "您的反馈处理状态已更新为：" + status,
+                "feedback", feedback.getId());
     }
 }

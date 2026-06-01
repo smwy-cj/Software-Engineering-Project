@@ -36,6 +36,11 @@ public class UserCert {
     @Column(nullable = false)
     private int age;
 
+    private Integer height;
+
+    @Column(length = 100)
+    private String signature;
+
     @Column(length = 512)
     private String interests;
 
@@ -77,6 +82,10 @@ public class UserCert {
     public void setGender(String gender) { this.gender = gender; }
     public int getAge() { return age; }
     public void setAge(int age) { this.age = age; }
+    public Integer getHeight() { return height; }
+    public void setHeight(Integer height) { this.height = height; }
+    public String getSignature() { return signature; }
+    public void setSignature(String signature) { this.signature = signature; }
     public String getInterests() { return interests; }
     public void setInterests(String interests) { this.interests = interests; }
     public String getCertStatus() { return certStatus; }

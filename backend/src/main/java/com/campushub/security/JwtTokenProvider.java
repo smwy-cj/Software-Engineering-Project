@@ -26,12 +26,17 @@ public class JwtTokenProvider {
     }
 
     public String generateAccessToken(Long userId, String username) {
+        return generateAccessToken(userId, username, "USER", false);
+    }
+
+    public String generateAccessToken(Long userId, String username, String role, boolean rememberMe) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("username", username)
+                .claim("role", role)
                 .issuedAt(now)
-                .expiration(new Date(now.getTime() + accessTokenExpiration))
+                .expiration(new Date(now.getTime() + (rememberMe ? refreshTokenExpiration : accessTokenExpiration)))
                 .signWith(key)
                 .compact();
     }
@@ -49,6 +54,12 @@ public class JwtTokenProvider {
     public Long getUserIdFromToken(String token) {
         return Long.parseLong(Jwts.parser().verifyWith(key).build()
                 .parseSignedClaims(token).getPayload().getSubject());
+    }
+
+    public String getRoleFromToken(String token) {
+        Object role = Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload().get("role");
+        return role != null ? role.toString() : "USER";
     }
 
     public boolean validateToken(String token) {

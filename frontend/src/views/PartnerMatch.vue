@@ -1,39 +1,58 @@
 <template>
-  <div class="card" v-if="match">
-    <h2>匹配详情</h2>
-    <p>状态：<strong>{{ match.status }}</strong></p>
-    <div style="margin:16px 0;">
-      <h4>需求信息</h4>
-      <p>{{ match.request?.type }} — {{ match.request?.description }}</p>
-    </div>
-    <div style="display:flex;gap:24px;">
+  <main class="business-page match-page glass-page" v-if="match">
+    <section class="business-hero glass-surface">
       <div>
-        <h4>发布者</h4>
-        <p>{{ match.publisher?.nickname }}</p>
-        <p>{{ match.publisher?.grade }} {{ match.publisher?.major }}</p>
+        <span class="hero-kicker">匹配详情</span>
+        <h1>{{ match.status }}</h1>
+        <p>{{ match.request?.type }} · {{ match.request?.description }}</p>
       </div>
-      <div>
-        <h4>申请人</h4>
-        <p>{{ match.applicant?.nickname }}</p>
-        <p>{{ match.applicant?.grade }} {{ match.applicant?.major }}</p>
-      </div>
-    </div>
-    <p style="margin-top:12px;">申请附言：{{ match.applyMessage || '无' }}</p>
-    <p>申请时间：{{ formatTime(match.applyTime) }}</p>
-    <p v-if="match.canChat" style="color:#27ae60;">可以开始聊天</p>
+      <aside class="business-side-card glass-mini-card">
+        <span class="glass-tag">申请时间</span>
+        <strong>已提交</strong>
+        <p>{{ formatTime(match.applyTime) }}</p>
+      </aside>
+    </section>
 
-    <div style="margin-top:16px;" v-if="match.status === 'ACCEPTED'">
-      <h4>提交评价</h4>
-      <div>
-        <select v-model.number="review.rating">
+    <section class="match-grid">
+      <article class="match-person glass-surface">
+        <span class="glass-tag">发布者</span>
+        <h2>{{ match.publisher?.nickname || '同学' }}</h2>
+        <p>{{ match.publisher?.grade }} {{ match.publisher?.major }}</p>
+      </article>
+      <article class="match-person glass-surface">
+        <span class="glass-tag">申请人</span>
+        <h2>{{ match.applicant?.nickname || '同学' }}</h2>
+        <p>{{ match.applicant?.grade }} {{ match.applicant?.major }}</p>
+      </article>
+    </section>
+
+    <section class="glass-surface match-note">
+      <div class="section-heading">
+        <div>
+          <h2>申请附言</h2>
+          <p>{{ match.applyMessage || '无' }}</p>
+        </div>
+        <span class="glass-tag" v-if="match.canChat">可以开始聊天</span>
+        <span class="glass-tag" v-else>{{ statusLabel(match.status) }}</span>
+      </div>
+    </section>
+
+    <section class="glass-surface create-form" v-if="match.status === 'ACCEPTED'">
+      <h2>提交评价</h2>
+      <div class="form-group">
+        <label>评分</label>
+        <select class="glass-input compact-input" v-model.number="review.rating">
           <option :value="5">5星</option><option :value="4">4星</option>
           <option :value="3">3星</option><option :value="2">2星</option><option :value="1">1星</option>
         </select>
       </div>
-      <textarea v-model="review.content" placeholder="评价内容（10-100字）" maxlength="100" style="width:100%;margin-top:8px;padding:8px;border:1px solid #ddd;border-radius:6px;"></textarea>
-      <button class="btn" style="margin-top:8px;" @click="submitReview">提交评价</button>
-    </div>
-  </div>
+      <div class="form-group">
+        <label>评价内容（10-100字）</label>
+        <textarea class="glass-input" v-model="review.content" placeholder="评价内容（10-100字）" maxlength="100"></textarea>
+      </div>
+      <button class="glass-button-primary" @click="submitReview">提交评价</button>
+    </section>
+  </main>
 </template>
 
 <script setup>
@@ -61,4 +80,7 @@ async function submitReview() {
 
 onMounted(load)
 function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }
+function statusLabel(status) {
+  return ({ PENDING: '等待发布者处理', ACCEPTED: '已通过', REJECTED: '已拒绝', CANCELED: '已取消', ENDED: '已结束' })[status] || status
+}
 </script>

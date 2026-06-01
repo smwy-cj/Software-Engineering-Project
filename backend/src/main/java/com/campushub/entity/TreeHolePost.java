@@ -15,7 +15,7 @@ public class TreeHolePost {
     @Column(name = "anonymous_name", nullable = false, length = 32)
     private String anonymousName;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 800)
     private String content;
 
     @Column(nullable = false, length = 16)
