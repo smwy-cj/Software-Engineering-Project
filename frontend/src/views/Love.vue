@@ -1,12 +1,9 @@
 <template>
-  <main class="business-page love-page glass-page">
+  <main class="business-page love-page glass-page" :style="lovePageStyle">
     <section class="love-shell">
       <div class="love-main-column">
-        <section class="love-hero glass-surface">
-          <div class="love-hero-copy">
-            <span class="hero-kicker">恋爱交友</span>
-            <h1>在校园里认真认识一个人</h1>
-            <p>发布清晰的交友期待，浏览同校同学的真实表达。互相尊重边界，用轻盈、真诚的方式开始了解。</p>
+        <section class="love-hero love-image-hero glass-surface" aria-label="在校园里，遇见心动的你">
+          <div class="love-hero-actions">
             <div class="hero-actions">
               <button class="glass-button-secondary love-match-button" @click="$router.push('/love/matches')">
                 <span class="love-line-icon love-heart-line" aria-hidden="true"></span>
@@ -18,21 +15,6 @@
               </button>
             </div>
           </div>
-          <div class="love-hero-scene" aria-hidden="true">
-            <span class="love-sun"></span>
-            <span class="love-campus"></span>
-            <span class="love-person love-person-left"></span>
-            <span class="love-person love-person-right"></span>
-            <span class="love-hero-heart"></span>
-            <span class="love-petal petal-one"></span>
-            <span class="love-petal petal-two"></span>
-          </div>
-          <aside class="love-hero-stat glass-mini-card">
-            <span>本周心动</span>
-            <strong>{{ activeCount }}</strong>
-            <p>条交友需求正在靠近</p>
-            <i aria-hidden="true"></i>
-          </aside>
         </section>
 
         <section class="composer-panel love-composer glass-surface" v-if="showCreate">
@@ -68,6 +50,7 @@
           <div class="love-sort-tabs">
             <button class="love-sort-tab" :class="{ active: sortBy === 'published' }" @click="switchSort('published')">最新发布</button>
             <button class="love-sort-tab" :class="{ active: sortBy === 'interaction' }" @click="switchSort('interaction')">最新互动</button>
+            <button class="love-sort-tab" :class="{ active: sortBy === 'popular' }" @click="switchSort('popular')">热门推荐</button>
           </div>
           <div class="love-category-scroll">
             <button
@@ -192,6 +175,7 @@ import { useAuthStore } from '../store/auth'
 import api, { unwrapPage } from '../api'
 import { useAsyncState } from '../composables/useAsyncState'
 import { useToast } from '../composables/useToast'
+import loveHeroCard from '../assets/love/love-hero-card.png'
 
 const authStore = useAuthStore()
 const requests = ref([])
@@ -203,12 +187,15 @@ const toast = useToast()
 const { loading: listLoading, error: listError, run: runList } = useAsyncState('交友需求加载失败')
 const { loading: actionLoading, run: runAction } = useAsyncState('操作失败')
 let refreshTimer = null
+const lovePageStyle = computed(() => ({
+  '--love-hero-card-image': `url(${loveHeroCard})`
+}))
 
 const categoryTabs = [
   { value: 'all', label: '全部' },
   { value: 'study', label: '学习交流' },
   { value: 'hobby', label: '兴趣爱好' },
-  { value: 'activity', label: '一起活动' },
+  { value: 'activity', label: '一起运动' },
   { value: 'movie', label: '电影音乐' },
   { value: 'travel', label: '旅行探索' },
   { value: 'other', label: '其他' }
@@ -223,10 +210,16 @@ const sideTags = [
   { label: '摄影', count: 467 }
 ]
 
-const currentTitle = computed(() => sortBy.value === 'interaction' ? '最新互动' : '最新发布')
+const currentTitle = computed(() => {
+  if (sortBy.value === 'interaction') return '最新互动'
+  if (sortBy.value === 'popular') return '热门推荐'
+  return '最新发布'
+})
 const currentDescription = computed(() =>
   sortBy.value === 'interaction'
     ? '优先展示最近收到心动回应的交友需求。'
+    : sortBy.value === 'popular'
+      ? '优先展示更容易开启对话的温柔交友卡片。'
     : '按发布时间查看同校同学的交友需求。'
 )
 const activeCount = computed(() => requests.value.length)
@@ -240,7 +233,7 @@ const visibleRequests = computed(() => {
 async function loadRequests() {
   await runList(async () => {
     const res = await api.get('/love/requests', {
-      params: { sortBy: sortBy.value, size: 20 }
+      params: { sortBy: sortBy.value === 'popular' ? 'published' : sortBy.value, size: 20 }
     })
     requests.value = unwrapPage(res).content
   }, { preventOverlap: true })
@@ -344,8 +337,12 @@ function interestTags(item) {
 }
 
 onMounted(() => {
+  document.body.classList.add('love-route-theme')
   loadRequests()
   startAutoRefresh()
 })
-onUnmounted(stopAutoRefresh)
+onUnmounted(() => {
+  document.body.classList.remove('love-route-theme')
+  stopAutoRefresh()
+})
 </script>

@@ -1,26 +1,13 @@
 <template>
-  <main class="business-page partner-page glass-page">
+  <main class="business-page partner-page glass-page" :style="partnerPageStyle">
     <section class="partner-shell">
       <div class="partner-main-column">
-        <section class="partner-hero glass-surface">
-          <div class="partner-hero-copy">
-            <span class="hero-kicker">校园搭子</span>
-            <h1>找到同频的同行者</h1>
-            <p>学习、运动、吃饭、出行，把临时计划变成轻松邀约。每张卡片都是一份校园活动邀请。</p>
+        <section class="partner-hero partner-image-hero glass-surface" aria-label="找到同频的同行者">
+          <div class="partner-hero-controls">
             <button v-if="authStore.isLoggedIn" class="glass-button-primary partner-hero-action" @click="$router.push('/partner/create')">
               <span class="partner-send-icon" aria-hidden="true"></span>
-              发布需求
+              发起搭子邀请
             </button>
-          </div>
-          <div class="partner-hero-art" aria-hidden="true">
-            <span class="partner-tree tree-left"></span>
-            <span class="partner-tree tree-right"></span>
-            <span class="partner-person person-left"></span>
-            <span class="partner-person person-right"></span>
-            <span class="partner-tablet"></span>
-            <span class="partner-headphone"></span>
-            <span class="partner-paper-plane"></span>
-            <span class="partner-dotted-path"></span>
           </div>
         </section>
 
@@ -38,6 +25,20 @@
             <span class="partner-search-icon" aria-hidden="true"></span>
             <input class="glass-input" v-model="keyword" placeholder="搜索搭子需求..." @keyup.enter="loadList" />
           </label>
+          <div class="partner-filter-tools" aria-label="搭子筛选方式">
+            <button class="partner-filter-chip active" type="button">
+              <span class="filter-chip-icon chip-leaf" aria-hidden="true"></span>
+              最新发布
+            </button>
+            <button class="partner-filter-chip" type="button">
+              <span class="filter-chip-icon chip-clock" aria-hidden="true"></span>
+              即将开始
+            </button>
+            <button class="partner-filter-chip" type="button">
+              <span class="filter-chip-icon chip-heart" aria-hidden="true"></span>
+              最受欢迎
+            </button>
+          </div>
         </section>
 
         <section class="partner-grid">
@@ -93,6 +94,25 @@
           </article>
         </section>
 
+        <section class="partner-bottom-cards" aria-label="搭子页数据与提醒">
+          <article class="partner-bottom-card glass-mini-card partner-rate-card">
+            <div>
+              <span class="partner-side-icon sprout-icon" aria-hidden="true"></span>
+              <strong>今日出发率</strong>
+            </div>
+            <p><b>78%</b><span>比昨日 +15%</span></p>
+            <span class="partner-rate-line" aria-hidden="true"></span>
+          </article>
+          <article class="partner-bottom-card glass-mini-card partner-friendly-card">
+            <div>
+              <span class="partner-side-icon bulb-icon" aria-hidden="true"></span>
+              <strong>友善小提醒</strong>
+            </div>
+            <p>真诚邀请，尊重彼此时间，让每一次搭伴都成为美好的回忆。</p>
+            <span class="partner-friendly-megaphone" aria-hidden="true"></span>
+          </article>
+        </section>
+
         <section v-if="selectedApplyRequest" class="glass-surface admin-panel">
           <h3>申请加入搭子</h3>
           <p>你正在申请：{{ selectedApplyRequest.title || typeLabel(selectedApplyRequest.type) + '搭子' }}</p>
@@ -145,46 +165,57 @@
       </div>
 
       <aside class="partner-aside">
-        <section class="glass-mini-card partner-side-card">
+        <section class="glass-mini-card partner-side-card partner-directions-card">
           <div class="partner-side-head">
             <span class="partner-side-icon sprout-icon" aria-hidden="true"></span>
-            <strong>搭子小数据</strong>
+            <strong>热门方向</strong>
           </div>
-          <div class="partner-stat-list">
-            <div>
-              <span class="partner-stat-icon stat-new" aria-hidden="true"></span>
-              <strong>{{ list.length }}</strong>
-              <small>当前邀请</small>
-            </div>
-            <div>
-              <span class="partner-stat-icon stat-active" aria-hidden="true"></span>
-              <strong>{{ activeCount }}</strong>
-              <small>招募中</small>
-            </div>
-            <div>
-              <span class="partner-stat-icon stat-match" aria-hidden="true"></span>
-              <strong>{{ matchedSeats }}</strong>
-              <small>已加入席位</small>
-            </div>
+          <div class="partner-direction-grid">
+            <button
+              v-for="item in directionCards"
+              :key="item.type"
+              class="partner-direction-item"
+              type="button"
+              @click="setType(item.type)"
+            >
+              <span class="partner-direction-icon" :class="item.icon" aria-hidden="true"></span>
+              <small>{{ item.label }}</small>
+            </button>
           </div>
           <span class="side-leaf-cluster" aria-hidden="true"></span>
         </section>
-        <section class="glass-mini-card partner-side-card">
+        <section class="glass-mini-card partner-side-card partner-activity-card">
           <div class="partner-side-head">
             <span class="partner-side-icon cactus-icon" aria-hidden="true"></span>
-            <strong>热门标签</strong>
+            <strong>本周校园活动</strong>
           </div>
-          <div class="partner-tag-cloud">
-            <span v-for="item in sideTags" :key="item" class="glass-tag">{{ item }}</span>
+          <div class="partner-activity-list">
+            <article v-for="item in campusActivities" :key="item.title" class="partner-activity-item">
+              <span class="partner-activity-thumb" :class="item.icon" aria-hidden="true"></span>
+              <div>
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.time }} · {{ item.count }}人参与</small>
+              </div>
+              <span class="glass-tag">{{ item.tag }}</span>
+            </article>
           </div>
           <span class="side-tag-illustration" aria-hidden="true"></span>
+        </section>
+        <section class="glass-mini-card partner-side-card partner-inspire-card">
+          <div class="partner-side-head">
+            <span class="partner-side-icon bulb-icon" aria-hidden="true"></span>
+            <strong>搭子灵感</strong>
+          </div>
+          <p>一个人走得快，一群人走得远。今晚试着发起一次自习、夜跑或周末看展。</p>
+          <button class="partner-refresh-chip" type="button">换一换</button>
         </section>
         <section class="glass-mini-card partner-side-card partner-tip-card">
           <div class="partner-side-head">
             <span class="partner-side-icon bulb-icon" aria-hidden="true"></span>
-            <strong>搭子小贴士</strong>
+            <strong>匹配小贴士</strong>
           </div>
-          <p>真诚发布需求，完善信息，更容易找到合适的搭子。</p>
+          <p>完善你的标签和兴趣，更容易找到同频的搭子哦。</p>
+          <div class="partner-tip-progress"><span></span></div>
           <span class="partner-backpack" aria-hidden="true"></span>
         </section>
       </aside>
@@ -193,12 +224,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from '../store/auth'
 import api from '../api'
 import { useAsyncState } from '../composables/useAsyncState'
 import { usePagination } from '../composables/usePagination'
 import { useToast } from '../composables/useToast'
+import partnerHeroCard from '../assets/partner/partner-hero-card.png'
 
 const authStore = useAuthStore()
 const type = ref('')
@@ -223,9 +255,25 @@ const typeTabs = [
   { value: 'sport', label: '运动' },
   { value: 'meal', label: '吃饭' },
   { value: 'travel', label: '出行' },
+  { value: 'photography', label: '摄影' },
   { value: 'other', label: '其他' }
 ]
-const sideTags = ['学习', '运动', '自习', '篮球', '羽毛球', '跑步', '考研', '摄影']
+const directionCards = [
+  { type: 'study', label: '学习', icon: 'direction-book' },
+  { type: 'sport', label: '运动', icon: 'direction-run' },
+  { type: 'meal', label: '吃饭', icon: 'direction-meal' },
+  { type: 'travel', label: '出行', icon: 'direction-plane' },
+  { type: 'photography', label: '摄影', icon: 'direction-camera' },
+  { type: 'other', label: '其他', icon: 'direction-more' }
+]
+const campusActivities = [
+  { title: '校园草坪音乐节', time: '6.7 周五 18:30', count: 234, tag: '音乐', icon: 'activity-music' },
+  { title: '毕业季市集', time: '6.8 周六 10:00', count: 156, tag: '市集', icon: 'activity-market' },
+  { title: '荧光夜跑', time: '6.9 周日 20:00', count: 189, tag: '运动', icon: 'activity-run' }
+]
+const partnerPageStyle = computed(() => ({
+  '--partner-hero-card-image': `url(${partnerHeroCard})`
+}))
 
 const typeMap = {
   study: '学习',
@@ -233,6 +281,7 @@ const typeMap = {
   meal: '吃饭',
   exam: '考试',
   travel: '出行',
+  photography: '摄影',
   game: '游戏',
   other: '其他'
 }
@@ -289,7 +338,13 @@ async function cancelRequest(requestId) {
   toast.success('搭子请求已撤销')
 }
 
-onMounted(loadListPage)
+onMounted(() => {
+  document.body.classList.add('partner-route-theme')
+  loadListPage()
+})
+onBeforeUnmount(() => {
+  document.body.classList.remove('partner-route-theme')
+})
 function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }
 function daysLeft(t) { if (!t) return 0; return Math.max(0, Math.ceil((new Date(t) - new Date()) / 86400000)) }
 function typeLabel(t) { return typeMap[t] || t || '其他' }

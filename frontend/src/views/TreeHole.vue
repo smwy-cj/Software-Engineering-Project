@@ -1,19 +1,17 @@
 <template>
-  <main class="business-page treehole-page glass-page">
-    <section class="treehole-hero glass-surface">
-      <div class="treehole-hero-copy">
-        <span class="hero-kicker">匿名树洞</span>
-        <h1>把心事放进青隅</h1>
-        <p>在这里，你可以放心倾诉。每一条树洞都会被温柔以待，安全、柔软，也有人认真看见。</p>
-      </div>
+  <main
+    class="business-page treehole-page glass-page"
+    :style="{
+      '--treehole-page-bg-image': `url(${treeholePageBg})`,
+      '--treehole-hero-card-image': `url(${treeholeHeroCard})`
+    }"
+  >
+    <section class="treehole-hero glass-surface" aria-label="把心事放进青隅">
       <aside class="treehole-hero-stat glass-mini-card">
         <span class="glass-tag">今日新增树洞</span>
         <strong>{{ posts.length }}</strong>
         <p>条湿漉漉的心事</p>
       </aside>
-      <span class="treehole-plane" aria-hidden="true"></span>
-      <span class="treehole-sakura sakura-one" aria-hidden="true"></span>
-      <span class="treehole-sakura sakura-two" aria-hidden="true"></span>
     </section>
 
     <section class="treehole-layout">
@@ -153,12 +151,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from '../store/auth'
 import api from '../api'
 import { useAsyncState } from '../composables/useAsyncState'
 import { usePagination } from '../composables/usePagination'
 import { useToast } from '../composables/useToast'
+import treeholePageBg from '../assets/treehole/treehole-page-bg.png'
+import treeholeHeroCard from '../assets/treehole/treehole-hero-card.png'
 
 const authStore = useAuthStore()
 const category = ref('')
@@ -193,6 +193,7 @@ const tagItems = [
   { value: 'other', label: '树洞' }
 ]
 
+const treeholeBgUrl = `url(${treeholePageBg})`
 const topPosts = computed(() => [...posts.value].sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0)).slice(0, 3))
 
 async function loadPosts() {
@@ -215,7 +216,16 @@ async function createPost() {
   toast.success('树洞发布成功')
 }
 
-onMounted(loadPostPage)
+onMounted(() => {
+  document.body.classList.add('treehole-route-bg')
+  document.body.style.setProperty('--treehole-route-bg-image', treeholeBgUrl)
+  loadPostPage()
+})
+
+onBeforeUnmount(() => {
+  document.body.classList.remove('treehole-route-bg')
+  document.body.style.removeProperty('--treehole-route-bg-image')
+})
 function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }
 function categoryLabel(value) {
   return tagItems.find(item => item.value === value)?.label || '其他'

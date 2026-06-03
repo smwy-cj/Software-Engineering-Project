@@ -780,3 +780,343 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Love page image hero and scoped pink shell theme */
+body.love-route-theme {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 223, 232, 0.74), transparent 30%),
+    linear-gradient(135deg, #fff4f7 0%, #fdeef3 48%, #fff9f6 100%);
+}
+
+body.love-route-theme .premium-app-shell {
+  background:
+    radial-gradient(circle at 12% 4%, rgba(255, 224, 232, 0.72), transparent 28%),
+    radial-gradient(circle at 90% 10%, rgba(255, 238, 244, 0.7), transparent 30%),
+    linear-gradient(135deg, #fff7fa 0%, #fdeef3 52%, #fff9f6 100%);
+}
+
+body.love-route-theme .app-rail {
+  border-color: rgba(244, 95, 140, 0.16);
+  box-shadow: 0 24px 70px rgba(198, 82, 117, 0.1);
+}
+
+body.love-route-theme .app-rail .nav-pill.active,
+body.love-route-theme .app-rail .nav-pill.router-link-active {
+  color: #fff;
+  background: linear-gradient(135deg, #ff9fbd 0%, #f45f8c 58%, #e84c7e 100%);
+  box-shadow: 0 18px 34px rgba(232, 76, 126, 0.24);
+}
+
+body.love-route-theme .app-rail .nav-pill:hover {
+  color: #8a3652;
+  background: rgba(255, 232, 239, 0.78);
+}
+
+body.love-route-theme .app-rail .nav-pill.active:hover,
+body.love-route-theme .app-rail .nav-pill.router-link-active:hover {
+  color: #fff;
+}
+
+body.love-route-theme .topbar,
+body.love-route-theme .topbar-icon-button,
+body.love-route-theme .topbar-user {
+  border-color: rgba(244, 95, 140, 0.16);
+  box-shadow: 0 16px 40px rgba(198, 82, 117, 0.09);
+}
+
+body.love-route-theme .topbar-mantra {
+  color: #7a3b52;
+  border-color: rgba(244, 95, 140, 0.16);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+body.love-route-theme .mantra-mark {
+  color: #f45f8c;
+  border-radius: 999px 999px 3px 999px;
+  transform: rotate(45deg);
+}
+
+body.love-route-theme .topbar-avatar {
+  background: linear-gradient(145deg, #ff9fbd, #f45f8c);
+}
+
+body.love-route-theme .rail-campus-card {
+  color: #8a3652;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(255, 186, 208, 0.62), transparent 24%),
+    linear-gradient(145deg, #ffe8ef, #fff4f7);
+}
+
+.love-page {
+  min-height: calc(100vh - 110px);
+  padding-bottom: 34px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 224, 232, 0.62), transparent 26%),
+    radial-gradient(circle at 90% 8%, rgba(255, 239, 244, 0.76), transparent 28%),
+    linear-gradient(135deg, #fff4f7 0%, #fff7fa 46%, #fff9f6 100%);
+}
+
+.love-page::before {
+  background:
+    radial-gradient(circle at 24% 12%, rgba(255, 181, 207, 0.26) 0 2px, transparent 3px),
+    radial-gradient(circle at 78% 18%, rgba(255, 122, 168, 0.18) 0 2px, transparent 3px),
+    linear-gradient(90deg, rgba(244, 95, 140, 0.03) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(244, 95, 140, 0.025) 1px, transparent 1px);
+  background-size: 120px 120px, 150px 150px, 42px 42px, 42px 42px;
+}
+
+.love-shell {
+  width: min(1280px, 100%);
+  gap: 24px;
+}
+
+.love-page .love-image-hero {
+  aspect-ratio: 2048 / 703;
+  min-height: 0;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background-color: #fff0f5;
+  background-image: var(--love-hero-card-image);
+  background-size: cover;
+  background-position: left center;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(244, 95, 140, 0.16);
+  border-radius: 32px;
+  box-shadow:
+    0 30px 76px rgba(198, 82, 117, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.love-page .love-image-hero::before,
+.love-page .love-image-hero::after {
+  display: none;
+}
+
+.love-hero-actions {
+  position: absolute;
+  left: 42px;
+  bottom: 34px;
+  z-index: 2;
+}
+
+.love-hero-actions .hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.love-page .love-hero-actions .glass-button-primary,
+.love-page .love-hero-actions .glass-button-secondary {
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.love-page .love-hero-actions .glass-button-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #ff8fb1, #f45f8c);
+  border-color: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 18px 34px rgba(232, 76, 126, 0.28);
+}
+
+.love-page .love-hero-actions .glass-button-secondary {
+  color: #d94373;
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(244, 95, 140, 0.18);
+  box-shadow: 0 14px 28px rgba(198, 82, 117, 0.12);
+}
+
+.love-page .love-hero-actions .glass-button-primary:hover,
+.love-page .love-hero-actions .glass-button-secondary:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: saturate(1.04);
+}
+
+.love-page .love-hero-stat {
+  right: 34px;
+  top: 36px;
+  width: 206px;
+  min-height: 144px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(244, 95, 140, 0.14);
+  box-shadow: 0 20px 46px rgba(198, 82, 117, 0.13);
+}
+
+.love-toolbar {
+  gap: 16px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(244, 95, 140, 0.14);
+  border-radius: 28px;
+  box-shadow: 0 18px 44px rgba(198, 82, 117, 0.09);
+}
+
+.love-sort-tab,
+.love-category-pill {
+  flex: 0 0 auto;
+  color: #7b5265;
+  background: rgba(255, 255, 255, 0.52);
+  transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.love-sort-tab:hover,
+.love-category-pill:hover {
+  color: #c73462;
+  background: rgba(255, 232, 239, 0.9);
+  transform: translateY(-1px);
+}
+
+.love-sort-tab.active,
+.love-category-pill.active {
+  color: #fff;
+  background: linear-gradient(135deg, #ff9fbd, #f45f8c);
+  border-color: rgba(255, 255, 255, 0.48);
+  box-shadow: 0 12px 24px rgba(232, 76, 126, 0.2);
+}
+
+.love-feed-panel,
+.love-composer {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(244, 95, 140, 0.14);
+  box-shadow: 0 18px 44px rgba(198, 82, 117, 0.09);
+}
+
+.love-profile-card {
+  border-radius: 26px;
+  border: 1px solid rgba(244, 95, 140, 0.14);
+  background:
+    radial-gradient(circle at 94% 12%, rgba(255, 232, 239, 0.84), transparent 23%),
+    rgba(255, 255, 255, 0.74);
+  box-shadow: 0 18px 44px rgba(198, 82, 117, 0.1);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.love-profile-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(244, 95, 140, 0.28);
+  box-shadow: 0 26px 56px rgba(198, 82, 117, 0.15);
+}
+
+.love-card-heart {
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.love-card-heart:hover {
+  color: #f45f8c;
+  transform: scale(1.12);
+}
+
+.love-interest-tags span:nth-child(2n) {
+  color: #5578a4;
+  background: #edf5ff;
+}
+
+.love-interest-tags span:nth-child(3n) {
+  color: #5c8d6c;
+  background: #edf8f0;
+}
+
+.love-interest-tags span:nth-child(4n) {
+  color: #b77236;
+  background: #fff1df;
+}
+
+.love-card-meta span {
+  color: #8a6374;
+  background: rgba(255, 247, 250, 0.88);
+}
+
+.love-page .love-heart-button {
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff8fb1, #f45f8c);
+}
+
+.love-side-card {
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 92% 10%, rgba(255, 232, 239, 0.7), transparent 24%),
+    rgba(255, 255, 255, 0.74);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.love-side-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(244, 95, 140, 0.26);
+  box-shadow: 0 24px 52px rgba(198, 82, 117, 0.14);
+}
+
+.love-tags-card::after {
+  content: "";
+  position: absolute;
+  right: -22px;
+  bottom: -18px;
+  width: 96px;
+  height: 76px;
+  opacity: 0.36;
+  background:
+    linear-gradient(135deg, transparent 45%, #ff9fbd 46% 55%, transparent 56%),
+    radial-gradient(circle at 72% 42%, #ff9fbd 0 16%, transparent 17%);
+  border-radius: 50%;
+  transform: rotate(-18deg);
+}
+
+.love-index-card {
+  min-height: 216px;
+}
+
+.love-index-number strong {
+  color: #6f2b43;
+}
+
+.love-pulse-line {
+  border-bottom-color: #f45f8c;
+}
+
+.love-rank-card li > span {
+  background: linear-gradient(145deg, #ffc2d5, #f45f8c);
+}
+
+@media (max-width: 1180px) {
+  .love-page .love-image-hero {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .love-page .love-hero-stat {
+    position: absolute;
+    right: 24px;
+    top: 24px;
+    width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .love-page .love-image-hero {
+    min-height: 176px;
+    border-radius: 24px;
+    background-position: left center;
+  }
+
+  .love-hero-actions {
+    left: 18px;
+    bottom: 16px;
+  }
+
+  .love-hero-actions .hero-actions {
+    gap: 8px;
+  }
+
+  .love-page .love-hero-actions .glass-button-primary,
+  .love-page .love-hero-actions .glass-button-secondary {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  .love-page .love-hero-stat {
+    display: none;
+  }
+}

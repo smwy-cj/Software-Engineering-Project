@@ -144,6 +144,13 @@ body::after {
   cursor: pointer;
 }
 
+.rail-brand-logo {
+  display: block;
+  width: min(156px, 100%);
+  height: auto;
+  object-fit: contain;
+}
+
 .brand-mark {
   display: inline-grid;
   place-items: center;
@@ -382,6 +389,16 @@ body::after {
 .topbar-icon-button {
   position: relative;
   width: 44px;
+  transition:
+    transform var(--motion-fast),
+    box-shadow var(--motion-fast),
+    background var(--motion-fast);
+}
+
+.topbar-icon-button:hover,
+.topbar-user:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(108, 88, 169, 0.12);
 }
 
 .topbar-user {
@@ -401,8 +418,60 @@ body::after {
   border-radius: 12px;
 }
 
+.topbar-user-meta {
+  display: grid;
+  gap: 1px;
+  line-height: 1.1;
+}
+
+.topbar-user-meta strong {
+  max-width: 96px;
+  overflow: hidden;
+  color: var(--premium-ink);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-user-meta small {
+  width: fit-content;
+  padding: 2px 7px;
+  color: #fff;
+  background: linear-gradient(135deg, #c6a8ff, #ee9bd1);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.theme-toggle {
+  overflow: hidden;
+}
+
+.theme-sun {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background:
+    radial-gradient(circle, #fff 0 28%, transparent 30%),
+    linear-gradient(135deg, #c6a8ff, #f5a1bf);
+  border-radius: 999px;
+  box-shadow: 0 0 0 8px rgba(169, 134, 247, 0.1);
+}
+
+.theme-sun::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  background:
+    linear-gradient(#b894ff, #b894ff) 50% 0 / 2px 5px no-repeat,
+    linear-gradient(#b894ff, #b894ff) 50% 100% / 2px 5px no-repeat,
+    linear-gradient(90deg, #b894ff, #b894ff) 0 50% / 5px 2px no-repeat,
+    linear-gradient(90deg, #b894ff, #b894ff) 100% 50% / 5px 2px no-repeat;
+}
+
 .premium-app-shell .main-content {
-  width: min(1240px, 100%);
+  width: min(1480px, 100%);
   margin: 0 auto;
 }
 
@@ -1509,6 +1578,10 @@ body::after {
 }
 
 @media (max-width: 520px) {
+  .topbar-user-meta {
+    display: none;
+  }
+
   .topbar-user span:last-child {
     display: none;
   }

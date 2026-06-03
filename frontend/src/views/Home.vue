@@ -1,20 +1,8 @@
 <template>
   <main class="home-page premium-home">
-    <section class="home-hero hero-panel glass-surface">
+    <section class="home-hero hero-panel glass-surface" :style="{ '--home-hero-image': `url(${heroCampus})` }">
       <div class="hero-content">
         <p class="home-overline">{{ authStore.isLoggedIn ? `欢迎回来，${authStore.user?.username || '同学'}` : '欢迎来到青隅' }}</p>
-        <h1 class="hero-title">今天也在校园里<br>遇见一点温柔</h1>
-        <p class="hero-description">青隅把匿名倾诉、同频搭子、恋爱交友<br>和消息提醒整理成一个清晰、温暖、可信赖的<br>校园服务中枢。</p>
-        <div class="hero-actions">
-          <template v-if="authStore.isLoggedIn">
-            <router-link to="/treehole" class="glass-button-primary">进入树洞</router-link>
-            <router-link to="/partner/create" class="glass-button-secondary">发布搭子</router-link>
-          </template>
-          <template v-else>
-            <router-link to="/login" class="glass-button-primary">登录</router-link>
-            <router-link to="/register" class="glass-button-secondary">注册</router-link>
-          </template>
-        </div>
       </div>
 
       <aside class="campus-portrait-panel" aria-label="青隅 CampusHub 欢迎卡">
@@ -56,38 +44,19 @@
       <h2>快速入口</h2>
     </div>
     <section class="home-command-grid">
-      <article class="command-card tree">
-        <div class="feature-icon jar-icon">树</div>
+      <router-link
+        v-for="entry in quickEntries"
+        :key="entry.title"
+        :to="entry.to"
+        :class="['command-card', entry.type]"
+      >
+        <div class="feature-icon">{{ entry.icon }}</div>
         <div>
-          <h3>今日树洞</h3>
-          <p>匿名表达被整理成更好阅读的温柔内容流。</p>
+          <h3>{{ entry.title }}</h3>
+          <p>{{ entry.description }}</p>
         </div>
-        <router-link to="/treehole" class="command-link">进入树洞</router-link>
-      </article>
-      <article class="command-card partner">
-        <div class="feature-icon plane-icon">搭</div>
-        <div>
-          <h3>同频搭子</h3>
-          <p>用类型、时间、人数和状态快速判断是否合适。</p>
-        </div>
-        <router-link to="/partner" class="command-link">查看搭子</router-link>
-      </article>
-      <article class="command-card love">
-        <div class="feature-icon heart-icon">遇</div>
-        <div>
-          <h3>恋爱交友</h3>
-          <p>查看同校交友需求，用真诚表达开启低压力认识。</p>
-        </div>
-        <router-link to="/love" class="command-link">去看看</router-link>
-      </article>
-      <article class="command-card notice">
-        <div class="feature-icon bell-icon">知</div>
-        <div>
-          <h3>通知中心</h3>
-          <p>系统提醒、互动消息和重要反馈集中查看。</p>
-        </div>
-        <router-link to="/notifications" class="command-link">查看通知</router-link>
-      </article>
+        <span class="command-link">{{ entry.action }}</span>
+      </router-link>
     </section>
 
     <section class="home-content-grid">
@@ -101,9 +70,13 @@
         </div>
         <p v-if="feedError" class="form-error">{{ feedError }}</p>
         <div v-if="feedLoading" class="empty-state empty-treehole">正在加载最新动态...</div>
-        <div v-else-if="posts.length === 0" class="empty-state empty-treehole">这里还很安静，写下第一条校园心情吧。</div>
         <div v-else class="feed-list">
-          <article v-for="post in posts" :key="post.postId" class="feed-item glass-mini-card" @click="$router.push(`/treehole/${post.postId}`)">
+          <article
+            v-for="post in displayedPosts"
+            :key="post.postId"
+            class="feed-item glass-mini-card"
+            @click="openPost(post)"
+          >
             <div class="feed-header">
               <div class="feed-avatar"></div>
               <div>
@@ -131,20 +104,10 @@
             <router-link to="/treehole" class="glass-button-secondary">查看全部</router-link>
           </div>
           <ol class="topic-list">
-            <li>
-              <span>1</span>
-              <strong># 考研搭子互助中</strong>
-              <em>1268 热度</em>
-            </li>
-            <li>
-              <span>2</span>
-              <strong># 树洞里的那些事</strong>
-              <em>998 热度</em>
-            </li>
-            <li>
-              <span>3</span>
-              <strong># 今天的校园碎片</strong>
-              <em>856 热度</em>
+            <li v-for="(topic, index) in hotTopics" :key="topic.name">
+              <span>{{ index + 1 }}</span>
+              <strong>{{ topic.name }}</strong>
+              <em>{{ topic.heat }} 热度</em>
             </li>
           </ol>
         </section>
@@ -176,14 +139,96 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import api, { unwrapPage } from '../api'
 import { useAsyncState } from '../composables/useAsyncState'
+import heroCampus from '../assets/home/hero-campus.png'
 
 const authStore = useAuthStore()
+const router = useRouter()
 const posts = ref([])
 const { loading: feedLoading, error: feedError, run } = useAsyncState('最新动态加载失败')
+
+const quickEntries = [
+  {
+    type: 'tree',
+    icon: '树',
+    title: '树洞',
+    description: '匿名表达，被理解的温柔角落',
+    action: '进入树洞',
+    to: '/treehole'
+  },
+  {
+    type: 'partner',
+    icon: '搭',
+    title: '找搭子',
+    description: '同频结伴，一起做喜欢的事',
+    action: '查看搭子',
+    to: '/partner'
+  },
+  {
+    type: 'love',
+    icon: '恋',
+    title: '恋爱交友',
+    description: '心动互助，遇见特别的 Ta',
+    action: '去看看',
+    to: '/love'
+  },
+  {
+    type: 'notice',
+    icon: '知',
+    title: '通知中心',
+    description: '系统提醒，不错过重要信息',
+    action: '查看通知',
+    to: '/notifications'
+  }
+]
+
+// 首页本地兜底展示数据：接口无数据或开发环境未启动后端时使用，后续可替换为真实首页聚合接口。
+const mockLatestPosts = [
+  {
+    postId: 'mock-1',
+    anonymousName: '匿名小熊',
+    createdAt: new Date().toISOString(),
+    content: '今天傍晚操场的云太好看了，想把这份轻松分享给也在赶作业的你。',
+    likeCount: 86,
+    commentCount: 23,
+    category: '校园碎片',
+    mock: true
+  },
+  {
+    postId: 'mock-2',
+    anonymousName: '星星同学',
+    createdAt: new Date(Date.now() - 1000 * 60 * 38).toISOString(),
+    content: '图书馆三楼靠窗的位置很适合复习，想找一个晚自习搭子互相监督。',
+    likeCount: 52,
+    commentCount: 12,
+    category: '找搭子',
+    mock: true
+  },
+  {
+    postId: 'mock-3',
+    anonymousName: '匿名小友',
+    createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+    content: '被朋友认真听完碎碎念的瞬间，突然觉得今天也没有那么难。',
+    likeCount: 41,
+    commentCount: 9,
+    category: '树洞',
+    mock: true
+  }
+]
+
+const hotTopics = [
+  { name: '# 考研搭子互助中', heat: 1268 },
+  { name: '# 树洞里的那些事', heat: 998 },
+  { name: '# 今天的校园碎片', heat: 856 },
+  { name: '# 期末周自救计划', heat: 742 },
+  { name: '# 晚风里的告白', heat: 639 }
+]
+
+const displayedPosts = computed(() => posts.value.length ? posts.value.slice(0, 3) : mockLatestPosts)
 
 onMounted(async () => {
   await run(async () => {
@@ -194,5 +239,14 @@ onMounted(async () => {
 
 function formatTime(t) {
   return t ? new Date(t).toLocaleDateString('zh-CN') : ''
+}
+
+function openPost(post) {
+  if (post.mock) {
+    router.push('/treehole')
+    return
+  }
+
+  router.push(`/treehole/${post.postId}`)
 }
 </script>

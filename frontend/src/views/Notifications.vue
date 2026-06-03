@@ -1,26 +1,12 @@
 <template>
-  <main class="business-page notification-page glass-page">
+  <main class="business-page notification-page glass-page" :style="notificationPageStyle">
     <section class="notification-shell">
       <div class="notification-main-column">
-        <section class="notification-hero glass-surface">
-          <div class="notification-hero-copy">
-            <span class="hero-kicker">消息通知</span>
-            <h1>新的回应都在这里</h1>
-            <p>集中查看互动、审核和系统提醒，不错过校园里的每一次反馈。</p>
-          </div>
-          <div class="notification-hero-art" aria-hidden="true">
-            <span class="notice-envelope"></span>
-            <span class="notice-bell"></span>
-            <span class="notice-note"></span>
-            <span class="notice-star star-one"></span>
-            <span class="notice-star star-two"></span>
-            <span class="notice-flower"></span>
-          </div>
-          <aside class="notification-hero-stat glass-mini-card">
-            <span class="glass-tag">未读提醒</span>
-            <strong>{{ unreadCount }}</strong>
-            <p>条消息待处理</p>
-          </aside>
+        <section
+          class="notification-hero notification-image-hero glass-surface"
+          :style="{ backgroundImage: `url(${notificationHeroCard})` }"
+          aria-label="每一次互动都在让校园更温暖"
+        >
         </section>
 
         <section class="glass-surface notification-panel">
@@ -133,7 +119,7 @@
         <section class="glass-mini-card notice-side-card overview-card">
           <div class="notice-side-head">
             <span class="notice-side-icon calendar-icon" aria-hidden="true"></span>
-            <strong>今日提醒概览</strong>
+            <strong>今日动态速览</strong>
           </div>
           <div class="notice-overview-grid">
             <div>
@@ -174,14 +160,13 @@
         <section class="glass-mini-card notice-side-card warm-tip-card">
           <div class="notice-side-head">
             <span class="notice-side-icon bulb-warm-icon" aria-hidden="true"></span>
-            <strong>温柔提示</strong>
+            <strong>小隅寄语</strong>
           </div>
-          <p>慢一点也没关系，每一条消息，都是善意的奔赴。</p>
+          <p>慢下来，认真生活，好事总会在不经意间发生。</p>
           <span class="notice-window-plant" aria-hidden="true"></span>
         </section>
-        <section class="glass-mini-card notice-poster-card" aria-hidden="true">
-          <span>在青隅，遇见温暖的回应</span>
-          <i></i>
+        <section class="notice-corner-image-card" aria-hidden="true">
+          <img :src="notificationCornerCard" alt="" />
         </section>
       </aside>
     </section>
@@ -189,11 +174,13 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import api, { unwrapData, unwrapPage } from '../api'
 import { useAuthStore } from '../store/auth'
 import { useAsyncState } from '../composables/useAsyncState'
 import { useToast } from '../composables/useToast'
+import notificationHeroCard from '../assets/notification/notification-hero-card.png'
+import notificationCornerCard from '../assets/notification/notification-cornor-card.png'
 
 const authStore = useAuthStore()
 const notifs = ref([])
@@ -204,6 +191,9 @@ const toast = useToast()
 const { loading: listLoading, error: listError, run: runList } = useAsyncState('通知加载失败')
 const { loading: detailLoading, error: detailError, run: runDetail } = useAsyncState('详情加载失败')
 const { loading: actionLoading, run: runAction } = useAsyncState('操作失败')
+const notificationPageStyle = computed(() => ({
+  '--notification-hero-card-image': `url(${notificationHeroCard})`
+}))
 const unreadCount = computed(() => notifs.value.filter(n => !n.isRead).length)
 const readCount = computed(() => notifs.value.filter(n => n.isRead).length)
 const interactionCount = computed(() => notifs.value.filter(n => notificationGroup(n) === 'interaction').length)
@@ -294,7 +284,13 @@ function closeDetail() {
   detailError.value = ''
 }
 
-onMounted(loadNotifs)
+onMounted(() => {
+  document.body.classList.add('notification-route-theme')
+  loadNotifs()
+})
+onBeforeUnmount(() => {
+  document.body.classList.remove('notification-route-theme')
+})
 function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }
 function typeLabel(t) { return typeMap[t] || t || '其他' }
 function statusLabel(status) {
