@@ -32,9 +32,6 @@
         <p class="auth-switch">
           还没有账号？<router-link to="/register">立即注册</router-link>
         </p>
-        <p class="auth-demo">
-          演示账号：13800138001 / Abc12345
-        </p>
       </div>
     </section>
   </div>
@@ -42,24 +39,32 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
+import { getApiErrorMessage } from '../api'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
-const phone = ref('13800138001')
-const password = ref('Abc12345')
+const phone = ref('')
+const password = ref('')
 const loading = ref(false)
 const error = ref('')
 
 async function handleLogin() {
+  if (loading.value) return
+  if (!phone.value || !password.value) {
+    error.value = '请输入手机号和密码'
+    return
+  }
+
   loading.value = true
   error.value = ''
   try {
     await authStore.login(phone.value, password.value)
-    router.push('/')
+    router.push(route.query.redirect || '/')
   } catch (e) {
-    error.value = e.response?.data?.message || '登录失败'
+    error.value = getApiErrorMessage(e, '登录失败')
   } finally {
     loading.value = false
   }

@@ -44,6 +44,7 @@ public class ContentReviewService {
         record.setUserId(userId);
         record.setResult("PENDING");
         record.setComment("待人工审核");
+        record.setContentSnapshot(toReviewSnapshot(text));
         record.setSubmitTime(LocalDateTime.now());
         return reviewRecordRepository.save(record);
     }
@@ -84,5 +85,16 @@ public class ContentReviewService {
                 throw new BusinessException(42201, "内容包含违规信息，请修改后重新发布");
             }
         }
+    }
+
+    private String toReviewSnapshot(String text) {
+        if (text == null) {
+            return "";
+        }
+        String normalized = text.trim();
+        if (normalized.length() <= 1000) {
+            return normalized;
+        }
+        return normalized.substring(0, 1000);
     }
 }

@@ -15,17 +15,21 @@
 
     <section class="glass-surface admin-panel">
       <h3>待审核内容</h3>
-      <div v-if="reviews.length === 0" class="empty-state empty-admin">当前没有待审核内容，系统很平静。</div>
+      <p v-if="loadError" class="form-error">{{ loadError }}</p>
+      <div v-if="loading" class="empty-state empty-admin">正在加载待处理事项...</div>
+      <div v-else-if="reviews.length === 0" class="empty-state empty-admin">当前没有待审核内容，系统很平静。</div>
       <div class="admin-list">
         <article v-for="r in reviews" :key="r.reviewId" class="admin-item glass-mini-card">
           <div class="admin-item-meta">
-            <span class="glass-tag">{{ r.contentType }}</span>
+            <span class="glass-tag">{{ contentTypeLabel(r.contentType) }}</span>
             <span>内容ID: {{ r.contentId }}</span>
             <span>用户ID: {{ r.userId }}</span>
+            <span v-if="r.submitTime">提交时间: {{ formatTime(r.submitTime) }}</span>
           </div>
+          <p>{{ reviewSnapshot(r) }}</p>
           <div class="admin-actions">
-            <button class="glass-button-secondary success-action" @click="reviewItem(r.reviewId, 'PASSED')">通过</button>
-            <button class="glass-button-secondary danger-action" @click="reviewItem(r.reviewId, 'REJECTED')">驳回</button>
+            <button class="glass-button-secondary success-action" :disabled="actionLoading" @click="reviewItem(r.reviewId, 'PASSED')">通过</button>
+            <button class="glass-button-secondary danger-action" :disabled="actionLoading" @click="reviewItem(r.reviewId, 'REJECTED')">驳回</button>
           </div>
         </article>
       </div>
@@ -51,12 +55,13 @@
         <label>原因</label>
         <input class="glass-input" v-model="banReason" placeholder="处罚原因" />
       </div>
-      <button class="glass-button-primary danger-primary" @click="banUser">执行处罚</button>
+      <button class="glass-button-primary danger-primary" :disabled="actionLoading" @click="banUser">执行处罚</button>
     </section>
 
     <section class="glass-surface admin-panel">
       <h3>反馈列表</h3>
-      <div v-if="feedbacks.length === 0" class="empty-state empty-admin">当前没有新的反馈，社区秩序保持稳定。</div>
+      <div v-if="loading" class="empty-state empty-admin">正在加载反馈...</div>
+      <div v-else-if="feedbacks.length === 0" class="empty-state empty-admin">当前没有新的反馈，社区秩序保持稳定。</div>
       <div class="admin-list">
         <article v-for="f in feedbacks" :key="f.feedbackNumber" class="admin-item glass-mini-card">
           <div class="admin-item-meta">
@@ -67,7 +72,7 @@
           <p>{{ f.content }}</p>
           <small>来自：{{ f.userInfo?.nickname }}</small>
           <div class="admin-actions">
-            <button class="glass-button-secondary" @click="processFeedback(f.feedbackNumber)">处理</button>
+            <button class="glass-button-secondary" :disabled="actionLoading" @click="processFeedback(f.feedbackNumber)">处理</button>
           </div>
         </article>
       </div>
@@ -77,48 +82,76 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '../api'
+import api, { unwrapPage } from '../api'
+import { useAsyncState } from '../composables/useAsyncState'
+import { useToast } from '../composables/useToast'
 
 const reviews = ref([])
 const feedbacks = ref([])
 const banUserId = ref(null)
 const banAction = ref('WARNED')
 const banReason = ref('')
+const toast = useToast()
+const { loading, error: loadError, run: runLoad } = useAsyncState('管理数据加载失败')
+const { loading: actionLoading, run: runAction } = useAsyncState('操作失败')
+const contentTypeMap = {
+  treeholePost: '树洞动态',
+  partnerReq: '搭子需求',
+  loveReq: '交友需求'
+}
 
-onMounted(async () => {
-  try {
+async function loadAdminData() {
+  await runLoad(async () => {
     const [rRes, fRes] = await Promise.all([
       api.get('/admin/reviews/pending', { params: { size: 50 } }),
       api.get('/admin/feedback', { params: { size: 50 } })
     ])
-    reviews.value = rRes.data.data.content || []
-    feedbacks.value = fRes.data.data.content || []
-  } catch (e) { /* need admin */ }
-})
+    reviews.value = unwrapPage(rRes).content
+    feedbacks.value = unwrapPage(fRes).content
+  })
+}
 
 async function reviewItem(reviewId, result) {
-  try {
+  const ok = await runAction(async () => {
     await api.put(`/admin/reviews/${reviewId}`, { result, comment: result === 'PASSED' ? '审核通过' : '内容违规' })
-    reviews.value = reviews.value.filter(r => r.reviewId !== reviewId)
-  } catch (e) { alert(e.response?.data?.message || '操作失败') }
+    return true
+  })
+  if (!ok) return toast.error('审核操作失败')
+  reviews.value = reviews.value.filter(r => r.reviewId !== reviewId)
+  toast.success(result === 'PASSED' ? '内容已通过' : '内容已驳回')
 }
 
 async function banUser() {
-  if (!banUserId.value || !banReason.value) return alert('请填写完整信息')
-  try {
+  if (!banUserId.value || !banReason.value) {
+    toast.error('请填写完整信息')
+    return
+  }
+
+  const ok = await runAction(async () => {
     await api.post(`/admin/users/${banUserId.value}/ban`, {
       action: banAction.value, reason: banReason.value, duration: 7
     })
-    alert('处罚已执行！')
-  } catch (e) { alert(e.response?.data?.message || '操作失败') }
+    return true
+  })
+  if (!ok) return toast.error('处罚执行失败')
+  banReason.value = ''
+  toast.success('处罚已执行')
 }
 
 async function processFeedback(fbNumber) {
   const comment = prompt('处理意见：')
   if (!comment) return
-  try {
+  const ok = await runAction(async () => {
     await api.put(`/admin/feedback/${fbNumber}`, { status: 'PROCESSING', processComment: comment })
-    alert('处理完成！')
-  } catch (e) { alert(e.response?.data?.message || '操作失败') }
+    return true
+  }, { fallback: '反馈处理失败' })
+  if (!ok) return toast.error('反馈处理失败')
+  feedbacks.value = feedbacks.value.filter(f => f.feedbackNumber !== fbNumber)
+  toast.success('反馈处理完成')
 }
+
+onMounted(loadAdminData)
+function contentTypeLabel(type) { return contentTypeMap[type] || type || '待审核内容' }
+function reviewSnapshot(item) { return item.contentSnapshot || '暂无正文快照，请进入内容详情后再审核。' }
+function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }
 </script>

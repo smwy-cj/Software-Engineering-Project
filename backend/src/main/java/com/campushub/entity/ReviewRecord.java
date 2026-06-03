@@ -27,6 +27,9 @@ public class ReviewRecord {
     @Column(length = 256)
     private String comment;
 
+    @Column(name = "content_snapshot", length = 1000)
+    private String contentSnapshot;
+
     @Column(name = "submit_time", nullable = false)
     private LocalDateTime submitTime;
 
@@ -49,6 +52,8 @@ public class ReviewRecord {
     public void setResult(String result) { this.result = result; }
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
+    public String getContentSnapshot() { return contentSnapshot; }
+    public void setContentSnapshot(String contentSnapshot) { this.contentSnapshot = contentSnapshot; }
     public LocalDateTime getSubmitTime() { return submitTime; }
     public void setSubmitTime(LocalDateTime submitTime) { this.submitTime = submitTime; }
     public LocalDateTime getReviewTime() { return reviewTime; }

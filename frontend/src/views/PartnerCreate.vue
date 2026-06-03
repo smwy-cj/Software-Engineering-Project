@@ -42,7 +42,7 @@
       <div class="composer-actions">
         <span class="helper-text">描述越具体，越容易被合适的人理解。</span>
         <div>
-          <button class="glass-button-primary" @click="submit" :disabled="!form.description || !form.type">发布</button>
+          <button class="glass-button-primary" @click="submit" :disabled="loading || !form.description || !form.type">发布</button>
           <button class="glass-button-secondary" @click="$router.back()">取消</button>
         </div>
       </div>
@@ -55,9 +55,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api'
+import { useAsyncState } from '../composables/useAsyncState'
+import { useToast } from '../composables/useToast'
 
 const router = useRouter()
-const error = ref('')
+const toast = useToast()
+const { loading, error, run } = useAsyncState('发布失败')
 const form = ref({
   type: 'study',
   description: '',
@@ -67,12 +70,12 @@ const form = ref({
 })
 
 async function submit() {
-  error.value = ''
-  try {
+  const ok = await run(async () => {
     await api.post('/partner/requests', form.value)
-    router.push('/partner')
-  } catch (e) {
-    error.value = e.response?.data?.message || '发布失败'
-  }
+    return true
+  })
+  if (!ok) return
+  toast.success('搭子需求已发布')
+  router.push('/partner')
 }
 </script>

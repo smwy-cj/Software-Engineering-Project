@@ -58,6 +58,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
+import { getApiErrorMessage } from '../api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -89,6 +90,7 @@ async function loadCaptcha() {
 }
 
 async function handleRegister() {
+  if (loading.value) return
   loading.value = true
   error.value = ''
   try {
@@ -102,7 +104,7 @@ async function handleRegister() {
     })
     router.push('/login')
   } catch (e) {
-    error.value = e.response?.data?.message || '注册失败'
+    error.value = getApiErrorMessage(e, '注册失败')
     await loadCaptcha()
   } finally {
     loading.value = false

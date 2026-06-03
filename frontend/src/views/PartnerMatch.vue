@@ -50,7 +50,16 @@
         <label>评价内容（10-100字）</label>
         <textarea class="glass-input" v-model="review.content" placeholder="评价内容（10-100字）" maxlength="100"></textarea>
       </div>
-      <button class="glass-button-primary" @click="submitReview">提交评价</button>
+      <button class="glass-button-primary" :disabled="actionLoading || !review.content" @click="submitReview">提交评价</button>
+    </section>
+  </main>
+  <main class="business-page match-page glass-page" v-else>
+    <section class="business-hero glass-surface">
+      <div>
+        <span class="hero-kicker">匹配详情</span>
+        <h1>{{ loading ? '正在加载' : '无法查看匹配详情' }}</h1>
+        <p>{{ error || '匹配不存在，或当前账号没有访问权限。' }}</p>
+      </div>
     </section>
   </main>
 </template>
@@ -58,24 +67,32 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import api from '../api'
+import api, { unwrapData } from '../api'
+import { useAsyncState } from '../composables/useAsyncState'
+import { useToast } from '../composables/useToast'
 
 const route = useRoute()
 const match = ref(null)
 const review = ref({ rating: 5, content: '' })
+const toast = useToast()
+const { loading, error, run } = useAsyncState('匹配详情加载失败')
+const { loading: actionLoading, run: runAction } = useAsyncState('评价失败')
 
 async function load() {
-  try {
+  await run(async () => {
     const res = await api.get(`/partner/matches/${route.params.id}`)
-    match.value = res.data.data
-  } catch (e) { match.value = null }
+    match.value = unwrapData(res)
+  })
 }
 
 async function submitReview() {
-  try {
+  const ok = await runAction(async () => {
     await api.post(`/partner/matches/${route.params.id}/reviews`, review.value)
-    alert('评价提交成功')
-  } catch (e) { alert(e.response?.data?.message || '评价失败') }
+    return true
+  })
+  if (!ok) return toast.error('评价失败')
+  review.value = { rating: 5, content: '' }
+  toast.success('评价提交成功')
 }
 
 onMounted(load)

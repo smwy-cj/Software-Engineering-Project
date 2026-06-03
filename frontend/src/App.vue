@@ -74,6 +74,7 @@
     <main v-else class="auth-content">
       <router-view />
     </main>
+    <ToastHost />
   </div>
 </template>
 
@@ -81,6 +82,7 @@
 import { useAuthStore } from './store/auth'
 import { useRouter } from 'vue-router'
 import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import ToastHost from './components/ToastHost.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()

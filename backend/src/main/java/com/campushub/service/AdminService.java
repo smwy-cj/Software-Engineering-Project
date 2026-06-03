@@ -62,6 +62,7 @@ public class AdminService {
             item.put("contentType", r.getContentType());
             item.put("contentId", r.getContentId());
             item.put("userId", r.getUserId());
+            item.put("contentSnapshot", r.getContentSnapshot());
             item.put("submitTime", r.getSubmitTime());
             content.add(item);
         }
@@ -79,6 +80,7 @@ public class AdminService {
         data.put("reviewId", reviewRecord.getId());
         data.put("contentType", reviewRecord.getContentType());
         data.put("contentId", reviewRecord.getContentId());
+        data.put("contentSnapshot", reviewRecord.getContentSnapshot());
 
         Map<String, Object> userInfo = new LinkedHashMap<>();
         userInfo.put("userId", reviewRecord.getUserId());
@@ -103,13 +105,22 @@ public class AdminService {
         contentReviewService.applyReviewResult(reviewRecord.getContentType(), reviewRecord.getContentId(), result);
 
         notificationService.createNotification(reviewRecord.getUserId(), "admin",
-                "审核结果通知", "您的内容审核结果：" + result, reviewRecord.getContentType(), reviewRecord.getContentId());
+                "审核结果通知", "您的内容审核结果：" + reviewResultLabel(result), reviewRecord.getContentType(), reviewRecord.getContentId());
 
         var resp = new LinkedHashMap<String, Object>();
         resp.put("reviewId", reviewRecord.getId());
         resp.put("result", result);
         resp.put("reviewTime", reviewRecord.getReviewTime());
         return resp;
+    }
+
+    private String reviewResultLabel(String result) {
+        return switch (result) {
+            case "PASSED" -> "已通过";
+            case "REJECTED" -> "未通过";
+            case "WARNING" -> "已通过，请注意社区规范";
+            default -> result;
+        };
     }
 
     @Transactional

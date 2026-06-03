@@ -14,7 +14,9 @@
     </section>
 
     <section class="glass-surface notification-panel">
-      <div v-if="matches.length === 0" class="empty-state empty-love">今天还没有心动留言，勇敢一点也许会遇见惊喜。</div>
+      <p v-if="error" class="form-error">{{ error }}</p>
+      <div v-if="loading" class="empty-state empty-love">正在加载匹配记录...</div>
+      <div v-else-if="matches.length === 0" class="empty-state empty-love">今天还没有心动留言，勇敢一点也许会遇见惊喜。</div>
       <div v-else class="notification-list">
         <article v-for="m in matches" :key="m.matchId" class="notification-item glass-mini-card">
           <div class="feed-avatar"></div>
@@ -33,15 +35,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '../api'
+import api, { unwrapPage } from '../api'
+import { useAsyncState } from '../composables/useAsyncState'
 
 const matches = ref([])
+const { loading, error, run } = useAsyncState('匹配记录加载失败')
 
 onMounted(async () => {
-  try {
+  await run(async () => {
     const res = await api.get('/love/matches')
-    matches.value = res.data.data.content || []
-  } catch (e) { matches.value = [] }
+    matches.value = unwrapPage(res).content
+  })
 })
 
 function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }

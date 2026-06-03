@@ -30,11 +30,11 @@
         <span class="glass-tag">实名认证：{{ certStatus }}</span>
       </div>
       <div class="profile-quick-grid">
-        <button class="profile-quick-action" type="button" @click="openActivity('published')">
+        <button class="profile-quick-action" type="button" :disabled="activityLoading" @click="openActivity('published')">
           <strong>我的发布</strong>
           <span>树洞与搭子记录</span>
         </button>
-        <button class="profile-quick-action" type="button" @click="openActivity('applications')">
+        <button class="profile-quick-action" type="button" :disabled="activityLoading" @click="openActivity('applications')">
           <strong>我的申请</strong>
           <span>待回应的同行计划</span>
         </button>
@@ -113,7 +113,7 @@
           <input class="glass-input" v-model.number="certForm.age" type="number" min="16" max="60" />
         </div>
       </div>
-      <button class="glass-button-primary" @click="submitCert">提交认证</button>
+      <button class="glass-button-primary" :disabled="actionLoading" @click="submitCert">提交认证</button>
     </section>
 
     <section class="glass-surface profile-panel" v-if="certStatus === 'CERTIFIED'">
@@ -161,7 +161,7 @@
         <label>个性签名</label>
         <textarea class="glass-input" v-model="profileForm.signature" placeholder="写一句个人签名..." maxlength="100"></textarea>
       </div>
-      <button class="glass-button-primary" @click="submitProfile">保存个人资料</button>
+      <button class="glass-button-primary" :disabled="actionLoading" @click="submitProfile">保存个人资料</button>
     </section>
 
     <section class="glass-surface profile-panel">
@@ -179,7 +179,7 @@
         <label>内容</label>
         <textarea class="glass-input" v-model="feedback.content" placeholder="详细描述..." maxlength="500"></textarea>
       </div>
-      <button class="glass-button-primary" @click="submitFeedback">提交反馈</button>
+      <button class="glass-button-primary" :disabled="actionLoading || !feedback.content" @click="submitFeedback">提交反馈</button>
     </section>
   </main>
 </template>
@@ -187,7 +187,9 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useAuthStore } from '../store/auth'
-import api from '../api'
+import api, { unwrapData } from '../api'
+import { useAsyncState } from '../composables/useAsyncState'
+import { useToast } from '../composables/useToast'
 
 const authStore = useAuthStore()
 const certStatus = ref('UNCERTIFIED')
@@ -208,6 +210,8 @@ const feedback = ref({ type: 'bug', content: '' })
 const activeActivity = ref('')
 const activityLoading = ref(false)
 const activityData = ref({})
+const toast = useToast()
+const { loading: actionLoading, run: runAction } = useAsyncState('操作失败')
 
 const activityTitle = computed(() => activeActivity.value === 'published' ? '我的发布' : '我的申请')
 const activitySections = computed(() => {
@@ -227,7 +231,7 @@ const activitySections = computed(() => {
 onMounted(async () => {
   try {
     const res = await api.get('/auth/cert-status')
-    const profile = res.data.data
+    const profile = unwrapData(res)
     certStatus.value = profile.certStatus || 'UNCERTIFIED'
     profileForm.value = {
       username: profile.username || authStore.user?.username || '',
@@ -239,29 +243,34 @@ onMounted(async () => {
       major: profile.major || '',
       signature: profile.signature || ''
     }
-  } catch (e) { /* fail */ }
+  } catch (e) {
+    toast.error('个人资料加载失败')
+  }
 })
 
 async function submitCert() {
-  try {
+  const ok = await runAction(async () => {
     await api.post('/auth/certify', certForm.value)
-    alert('认证提交成功！')
-    certStatus.value = 'CERTIFIED'
-  } catch (e) { alert(e.response?.data?.message || '认证失败') }
+    return true
+  }, { fallback: '认证失败' })
+  if (!ok) return toast.error('认证失败')
+  certStatus.value = 'CERTIFIED'
+  toast.success('认证提交成功')
 }
 
 async function submitProfile() {
-  try {
+  const data = await runAction(async () => {
     const res = await api.put('/auth/profile', profileForm.value)
-    const data = res.data.data
-    authStore.updateUserInfo({ username: data.username, avatar: data.avatar })
-    profileForm.value = {
-      ...profileForm.value,
-      ...data,
-      enrollmentYear: data.enrollmentYear || profileForm.value.enrollmentYear
-    }
-    alert('个人资料保存成功！')
-  } catch (e) { alert(e.response?.data?.message || '保存失败') }
+    return unwrapData(res)
+  }, { fallback: '保存失败' })
+  if (!data) return toast.error('保存失败')
+  authStore.updateUserInfo({ username: data.username, avatar: data.avatar })
+  profileForm.value = {
+    ...profileForm.value,
+    ...data,
+    enrollmentYear: data.enrollmentYear || profileForm.value.enrollmentYear
+  }
+  toast.success('个人资料保存成功')
 }
 
 async function openActivity(type) {
@@ -271,9 +280,9 @@ async function openActivity(type) {
   try {
     const url = type === 'published' ? '/profile/published' : '/profile/applications'
     const res = await api.get(url)
-    activityData.value = res.data.data || {}
+    activityData.value = unwrapData(res) || {}
   } catch (e) {
-    alert(e.response?.data?.message || '记录加载失败')
+    toast.error('记录加载失败')
   } finally {
     activityLoading.value = false
   }
@@ -283,12 +292,12 @@ function handleAvatarFile(event) {
   const file = event.target.files?.[0]
   if (!file) return
   if (!file.type.startsWith('image/')) {
-    alert('请选择图片文件')
+    toast.error('请选择图片文件')
     event.target.value = ''
     return
   }
   if (file.size > 512 * 1024) {
-    alert('头像图片不能超过512KB')
+    toast.error('头像图片不能超过512KB')
     event.target.value = ''
     return
   }
@@ -297,16 +306,18 @@ function handleAvatarFile(event) {
   reader.onload = () => {
     profileForm.value.avatar = String(reader.result || '')
   }
-  reader.onerror = () => alert('头像读取失败')
+  reader.onerror = () => toast.error('头像读取失败')
   reader.readAsDataURL(file)
 }
 
 async function submitFeedback() {
-  try {
+  const ok = await runAction(async () => {
     await api.post('/feedback', feedback.value)
-    alert('反馈提交成功！')
-    feedback.value = { type: 'bug', content: '' }
-  } catch (e) { alert(e.response?.data?.message || '提交失败') }
+    return true
+  }, { fallback: '提交失败' })
+  if (!ok) return toast.error('提交失败')
+  feedback.value = { type: 'bug', content: '' }
+  toast.success('反馈提交成功')
 }
 
 function parseEnrollmentYear(grade) {
