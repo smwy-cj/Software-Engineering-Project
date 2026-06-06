@@ -1,6 +1,7 @@
 package com.campushub.service;
 
 import com.campushub.common.BusinessException;
+import com.campushub.dto.request.CertifyRequest;
 import com.campushub.dto.request.LoginRequest;
 import com.campushub.dto.request.RegisterRequest;
 import com.campushub.dto.request.UserProfileRequest;
@@ -220,14 +221,11 @@ class UserServiceTest {
         cert.setMajor("计算机科学与技术");
 
         UserProfileRequest req = new UserProfileRequest();
-        req.setUsername("newName");
+        req.setNickname("newName");
         req.setAvatar("https://example.com/avatar.png");
-        req.setGender("female");
-        req.setAge(21);
-        req.setEnrollmentYear(2023);
-        req.setHeight(168);
         req.setMajor("软件工程");
-        req.setSignature("保持好奇，认真生活");
+        req.setGrade("2023级");
+        req.setBio("保持好奇，认真生活");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userCertRepository.findByUserId(1L)).thenReturn(Optional.of(cert));
@@ -239,14 +237,13 @@ class UserServiceTest {
         java.util.Map<String, Object> result = (java.util.Map<String, Object>) userService.updateProfile(1L, req);
 
         assertEquals("newName", result.get("username"));
+        assertEquals("newName", result.get("nickname"));
         assertEquals("https://example.com/avatar.png", result.get("avatar"));
-        assertEquals("female", result.get("gender"));
-        assertEquals(21, result.get("age"));
-        assertEquals(2023, result.get("enrollmentYear"));
         assertEquals("2023级", result.get("grade"));
-        assertEquals(168, result.get("height"));
         assertEquals("软件工程", result.get("major"));
-        assertEquals("保持好奇，认真生活", result.get("signature"));
+        assertEquals("保持好奇，认真生活", result.get("bio"));
+        assertEquals("male", cert.getGender());
+        assertEquals(20, cert.getAge());
     }
 
     @Test
@@ -260,13 +257,10 @@ class UserServiceTest {
         cert.setCertStatus("CERTIFIED");
 
         UserProfileRequest req = new UserProfileRequest();
-        req.setUsername("takenName");
-        req.setGender("female");
-        req.setAge(21);
-        req.setEnrollmentYear(2023);
-        req.setHeight(168);
+        req.setNickname("takenName");
+        req.setGrade("2023级");
         req.setMajor("软件工程");
-        req.setSignature("保持好奇");
+        req.setBio("保持好奇");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userCertRepository.findByUserId(1L)).thenReturn(Optional.of(cert));
@@ -274,6 +268,72 @@ class UserServiceTest {
 
         BusinessException ex = assertThrows(BusinessException.class, () -> userService.updateProfile(1L, req));
         assertEquals(40901, ex.getCode());
+    }
+
+    @Test
+    void certify_shouldOnlyRequireBasicCampusIdentityFields() {
+        CertifyRequest req = new CertifyRequest();
+        req.setStudentId("20240001");
+        req.setSchool("青隅大学");
+        req.setGender("male");
+        req.setAge(20);
+
+        when(userCertRepository.save(any(UserCert.class))).thenAnswer(inv -> {
+            UserCert cert = inv.getArgument(0);
+            cert.setId(10L);
+            return cert;
+        });
+
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) userService.certify(1L, req);
+
+        verify(userCertRepository).save(argThat(cert ->
+                "20240001".equals(cert.getStudentId())
+                        && "青隅大学".equals(cert.getUniversity())
+                        && "male".equals(cert.getGender())
+                        && cert.getAge() == 20
+                        && cert.getRealName() == null
+                        && cert.getIdCard() == null
+                        && cert.getMajor() == null
+                        && cert.getGrade() == null
+        ));
+        assertEquals("CERTIFIED", result.get("verificationStatus"));
+        assertFalse(result.containsKey("realName"));
+        assertFalse(result.containsKey("idCard"));
+    }
+
+    @Test
+    void getCertStatus_shouldReturnVerificationInfoWithoutRealNameOrIdCard() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("测试用户");
+
+        UserCert cert = new UserCert();
+        cert.setUserId(1L);
+        cert.setStudentId("20240001");
+        cert.setUniversity("青隅大学");
+        cert.setGender("female");
+        cert.setAge(21);
+        cert.setCertStatus("CERTIFIED");
+        cert.setRealName("不应返回");
+        cert.setIdCard("320000200001010001");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userCertRepository.findByUserId(1L)).thenReturn(Optional.of(cert));
+
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) userService.getCertStatus(1L);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> verificationInfo =
+                (java.util.Map<String, Object>) result.get("verificationInfo");
+
+        assertEquals("20240001", verificationInfo.get("studentId"));
+        assertEquals("青隅大学", verificationInfo.get("school"));
+        assertEquals("female", verificationInfo.get("gender"));
+        assertEquals(21, verificationInfo.get("age"));
+        assertEquals("CERTIFIED", verificationInfo.get("verificationStatus"));
+        assertFalse(verificationInfo.containsKey("realName"));
+        assertFalse(verificationInfo.containsKey("idCard"));
     }
 
     @Test

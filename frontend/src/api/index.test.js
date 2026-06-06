@@ -7,9 +7,10 @@ describe('api helpers', () => {
   })
 
   it('normalizes page payloads', () => {
-    const page = unwrapPage({ data: { data: { content: [{ id: 1 }], totalPages: 3, unreadCount: 2 } } })
+    const page = unwrapPage({ data: { data: { content: [{ id: 1 }], totalElements: 21, totalPages: 3, unreadCount: 2 } } })
 
     expect(page.content).toEqual([{ id: 1 }])
+    expect(page.totalElements).toBe(21)
     expect(page.totalPages).toBe(3)
     expect(page.unreadCount).toBe(2)
   })

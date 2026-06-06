@@ -2,12 +2,9 @@ package com.campushub.controller;
 
 import com.campushub.common.ApiResponse;
 import com.campushub.dto.request.*;
-import com.campushub.entity.UserCert;
 import com.campushub.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -40,8 +37,9 @@ public class AuthController {
     }
 
     @PostMapping("/certify")
-    public ApiResponse<?> certify(@RequestAttribute("userId") Long userId, @RequestBody UserCert certData) {
-        return ApiResponse.success("实名认证成功", userService.certify(userId, certData));
+    public ApiResponse<?> certify(@RequestAttribute("userId") Long userId,
+                                  @Valid @RequestBody CertifyRequest req) {
+        return ApiResponse.success("实名认证成功", userService.certify(userId, req));
     }
 
     @GetMapping("/cert-status")

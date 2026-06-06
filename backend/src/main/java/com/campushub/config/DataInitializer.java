@@ -47,9 +47,9 @@ public class DataInitializer implements CommandLineRunner {
         adminRepository.save(admin);
 
         // Create certifications
-        createCert(user1.getId(), "20240001", "张小明", "XX大学", "计算机科学与技术", "2024级", "male", 20);
-        createCert(user2.getId(), "20240002", "李小红", "XX大学", "软件工程", "2024级", "female", 20);
-        createCert(user3.getId(), "20240003", "王小刚", "XX大学", "计算机科学与技术", "2024级", "male", 21);
+        createCert(user1.getId(), "20240001", "XX大学", "计算机科学与技术", "2024级", "male", 20);
+        createCert(user2.getId(), "20240002", "XX大学", "软件工程", "2024级", "female", 20);
+        createCert(user3.getId(), "20240003", "XX大学", "计算机科学与技术", "2024级", "male", 21);
 
         // Create tree hole posts
         createPost(user1.getId(), "匿名小友327", "期末周太累了...图书馆位置都抢不到", "study", 42, 8);
@@ -91,13 +91,11 @@ public class DataInitializer implements CommandLineRunner {
         return userRepository.save(user);
     }
 
-    private void createCert(Long userId, String studentId, String realName, String university,
+    private void createCert(Long userId, String studentId, String university,
                             String major, String grade, String gender, int age) {
         UserCert cert = new UserCert();
         cert.setUserId(userId);
         cert.setStudentId(studentId);
-        cert.setRealName(realName);
-        cert.setIdCard("32000020000101000" + userId);
         cert.setUniversity(university);
         cert.setMajor(major);
         cert.setGrade(grade);

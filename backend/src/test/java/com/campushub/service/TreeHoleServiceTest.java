@@ -27,13 +27,14 @@ class TreeHoleServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private UserCertRepository userCertRepository;
     @Mock private ContentReviewService contentReviewService;
+    @Mock private NotificationService notificationService;
 
     private TreeHoleService treeHoleService;
 
     @BeforeEach
     void setUp() {
         treeHoleService = new TreeHoleService(postRepository, commentRepository, likeRepository,
-                userRepository, userCertRepository, contentReviewService);
+                userRepository, userCertRepository, contentReviewService, notificationService);
     }
 
     @Test
@@ -76,6 +77,7 @@ class TreeHoleServiceTest {
     void addComment_shouldUseAnonymousNameInsteadOfUsername() {
         TreeHolePost post = new TreeHolePost();
         post.setId(1L);
+        post.setUserId(2L);
         post.setStatus("PUBLISHED");
         post.setCommentEnabled(true);
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
@@ -94,6 +96,8 @@ class TreeHoleServiceTest {
         verify(commentRepository).save(argThat(comment ->
                 comment.getAnonymousName().startsWith("匿名小友")
                         && !"真实用户名".equals(comment.getAnonymousName())));
+        verify(notificationService).createNotification(eq(2L), eq("treehole_comment"),
+                anyString(), contains("评论内容"), eq("treeholePost"), eq(1L));
     }
 
     @Test
@@ -111,6 +115,7 @@ class TreeHoleServiceTest {
     void toggleLike_shouldAddLike() {
         TreeHolePost post = new TreeHolePost();
         post.setId(1L);
+        post.setUserId(2L);
         post.setLikeCount(5);
         post.setLikeEnabled(true);
         post.setStatus("PUBLISHED");
@@ -127,6 +132,8 @@ class TreeHoleServiceTest {
         Object result = treeHoleService.toggleLike(1L, 1L);
         assertNotNull(result);
         assertEquals(6, post.getLikeCount());
+        verify(notificationService).createNotification(eq(2L), eq("treehole_like"),
+                anyString(), anyString(), eq("treeholePost"), eq(1L));
     }
 
     @Test

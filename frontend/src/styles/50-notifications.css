@@ -1146,28 +1146,44 @@
 
 /* Notification page image hero and scoped warm-yellow shell theme */
 body.notification-route-theme {
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255, 231, 166, 0.72), transparent 30%),
-    linear-gradient(135deg, #fff9e8 0%, #fff7dc 48%, #fffdf4 100%);
+  background-color: #fff9e8;
+  background-image:
+    linear-gradient(180deg, rgba(255, 253, 244, 0.12), rgba(255, 247, 220, 0.26)),
+    var(--notification-page-bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 body.notification-route-theme .premium-app-shell {
-  background:
-    radial-gradient(circle at 12% 4%, rgba(255, 232, 170, 0.58), transparent 28%),
-    radial-gradient(circle at 90% 10%, rgba(250, 236, 193, 0.72), transparent 30%),
-    linear-gradient(135deg, #fffdf4 0%, #fff7dc 52%, #faf3dd 100%);
+  background-color: transparent;
+  background-image:
+    linear-gradient(180deg, rgba(255, 253, 244, 0.1), rgba(255, 247, 220, 0.22)),
+    var(--notification-page-bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 body:has(.notification-page) .premium-app-shell {
-  background:
-    radial-gradient(circle at 12% 4%, rgba(255, 232, 170, 0.58), transparent 28%),
-    radial-gradient(circle at 90% 10%, rgba(250, 236, 193, 0.72), transparent 30%),
-    linear-gradient(135deg, #fffdf4 0%, #fff7dc 52%, #faf3dd 100%);
+  background-color: transparent;
+  background-image:
+    linear-gradient(180deg, rgba(255, 253, 244, 0.1), rgba(255, 247, 220, 0.22)),
+    var(--notification-page-bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 body.notification-route-theme .app-rail {
+  background: rgba(255, 255, 255, 0.84);
   border-color: rgba(226, 168, 55, 0.18);
   box-shadow: 0 24px 70px rgba(151, 104, 22, 0.1);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
 }
 
 body:has(.notification-page) .app-rail {
@@ -1197,8 +1213,11 @@ body.notification-route-theme .app-rail .nav-pill:hover {
 body.notification-route-theme .topbar,
 body.notification-route-theme .topbar-icon-button,
 body.notification-route-theme .topbar-user {
+  background: rgba(255, 255, 255, 0.78);
   border-color: rgba(226, 168, 55, 0.18);
   box-shadow: 0 16px 40px rgba(151, 104, 22, 0.09);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
 }
 
 body:has(.notification-page) .topbar,
@@ -1255,13 +1274,27 @@ body.notification-route-theme .rail-campus-card strong::after {
   line-height: 1.45;
 }
 
+@supports (-webkit-touch-callout: none) {
+  body.notification-route-theme,
+  body.notification-route-theme .premium-app-shell,
+  body:has(.notification-page) .premium-app-shell {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 768px) {
+  body.notification-route-theme,
+  body.notification-route-theme .premium-app-shell,
+  body:has(.notification-page) .premium-app-shell {
+    background-attachment: scroll;
+    background-position: center top;
+  }
+}
+
 .notification-page {
   min-height: calc(100vh - 110px);
   padding-bottom: 34px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(255, 232, 170, 0.62), transparent 26%),
-    radial-gradient(circle at 90% 8%, rgba(255, 245, 211, 0.76), transparent 28%),
-    linear-gradient(135deg, #fff9e8 0%, #fffdf4 48%, #faf3dd 100%);
+  background: transparent;
 }
 
 .notification-page::before {

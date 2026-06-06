@@ -27,6 +27,7 @@ export function unwrapPage(response) {
   const data = unwrapData(response) || {}
   return {
     content: data.content || [],
+    totalElements: data.totalElements || 0,
     totalPages: data.totalPages || 1,
     unreadCount: data.unreadCount || 0,
     raw: data

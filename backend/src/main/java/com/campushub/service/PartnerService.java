@@ -323,7 +323,7 @@ public class PartnerService {
 
         Long notifyUserId = publisher ? match.getApplicantId() : req.getUserId();
         notificationService.createNotification(notifyUserId, "partner_match",
-                "搭子匹配状态更新", "搭子匹配状态已更新为：" + status, "partnerMatch", match.getId());
+                "搭子匹配状态更新", "搭子匹配状态已更新为：" + statusLabel(status), "partnerMatch", match.getId());
 
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("matchId", match.getId());
@@ -331,6 +331,17 @@ public class PartnerService {
         data.put("responseTime", match.getResponseTime());
         data.put("endTime", match.getEndTime());
         return data;
+    }
+
+    private String statusLabel(String status) {
+        return switch (status == null ? "" : status) {
+            case "ACCEPTED" -> "已接受";
+            case "REJECTED" -> "已拒绝";
+            case "CANCELED" -> "已取消";
+            case "ENDED" -> "已结束";
+            case "PENDING" -> "等待处理";
+            default -> "处理中";
+        };
     }
 
     @Transactional

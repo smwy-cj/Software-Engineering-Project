@@ -7,6 +7,7 @@ import com.campushub.entity.PartnerReq;
 import com.campushub.entity.TreeHolePost;
 import com.campushub.repository.LoveMatchRepository;
 import com.campushub.repository.LoveReqRepository;
+import com.campushub.repository.NotificationRepository;
 import com.campushub.repository.PartnerMatchRepository;
 import com.campushub.repository.PartnerReqRepository;
 import com.campushub.repository.TreeHolePostRepository;
@@ -30,13 +31,29 @@ class ProfileActivityServiceTest {
     @Mock private LoveReqRepository loveReqRepository;
     @Mock private PartnerMatchRepository partnerMatchRepository;
     @Mock private LoveMatchRepository loveMatchRepository;
+    @Mock private NotificationRepository notificationRepository;
 
     private ProfileActivityService service;
 
     @BeforeEach
     void setUp() {
         service = new ProfileActivityService(treeHolePostRepository, partnerReqRepository, loveReqRepository,
-                partnerMatchRepository, loveMatchRepository);
+                partnerMatchRepository, loveMatchRepository, notificationRepository);
+    }
+
+    @Test
+    void getStats_shouldReturnCurrentUserAggregates() {
+        when(treeHolePostRepository.countByUserIdAndIsDeletedFalse(1L)).thenReturn(4L);
+        when(treeHolePostRepository.sumLikeCountByUserId(1L)).thenReturn(18L);
+        when(treeHolePostRepository.sumCommentCountByUserId(1L)).thenReturn(7L);
+        when(notificationRepository.countByUserIdAndIsReadFalse(1L)).thenReturn(2L);
+
+        Map<String, Object> result = service.getStats(1L);
+
+        assertEquals(4L, result.get("treeHoleCount"));
+        assertEquals(18L, result.get("receivedLikes"));
+        assertEquals(7L, result.get("receivedComments"));
+        assertEquals(2L, result.get("unreadNotifications"));
     }
 
     @Test

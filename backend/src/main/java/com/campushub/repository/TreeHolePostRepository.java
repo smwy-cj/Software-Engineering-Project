@@ -20,4 +20,12 @@ public interface TreeHolePostRepository extends JpaRepository<TreeHolePost, Long
     Page<TreeHolePost> findByStatusAndIsDeletedFalse(String status, Pageable pageable);
 
     List<TreeHolePost> findTop20ByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(Long userId);
+
+    long countByUserIdAndIsDeletedFalse(Long userId);
+
+    @Query("SELECT COALESCE(SUM(p.likeCount), 0) FROM TreeHolePost p WHERE p.userId = :userId AND p.isDeleted = false")
+    long sumLikeCountByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COALESCE(SUM(p.commentCount), 0) FROM TreeHolePost p WHERE p.userId = :userId AND p.isDeleted = false")
+    long sumCommentCountByUserId(@Param("userId") Long userId);
 }

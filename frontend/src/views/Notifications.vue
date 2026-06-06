@@ -181,6 +181,7 @@ import { useAsyncState } from '../composables/useAsyncState'
 import { useToast } from '../composables/useToast'
 import notificationHeroCard from '../assets/notification/notification-hero-card.png'
 import notificationCornerCard from '../assets/notification/notification-cornor-card.png'
+import notificationPageBg from '../assets/notification/notification-page-bg.png'
 
 const authStore = useAuthStore()
 const notifs = ref([])
@@ -192,7 +193,8 @@ const { loading: listLoading, error: listError, run: runList } = useAsyncState('
 const { loading: detailLoading, error: detailError, run: runDetail } = useAsyncState('详情加载失败')
 const { loading: actionLoading, run: runAction } = useAsyncState('操作失败')
 const notificationPageStyle = computed(() => ({
-  '--notification-hero-card-image': `url(${notificationHeroCard})`
+  '--notification-hero-card-image': `url(${notificationHeroCard})`,
+  '--notification-page-bg-image': `url(${notificationPageBg})`
 }))
 const unreadCount = computed(() => notifs.value.filter(n => !n.isRead).length)
 const readCount = computed(() => notifs.value.filter(n => n.isRead).length)
@@ -286,10 +288,12 @@ function closeDetail() {
 
 onMounted(() => {
   document.body.classList.add('notification-route-theme')
+  document.body.style.setProperty('--notification-page-bg-image', `url(${notificationPageBg})`)
   loadNotifs()
 })
 onBeforeUnmount(() => {
   document.body.classList.remove('notification-route-theme')
+  document.body.style.removeProperty('--notification-page-bg-image')
 })
 function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }
 function typeLabel(t) { return typeMap[t] || t || '其他' }

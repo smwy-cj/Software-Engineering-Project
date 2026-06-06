@@ -231,6 +231,7 @@ import { useAsyncState } from '../composables/useAsyncState'
 import { usePagination } from '../composables/usePagination'
 import { useToast } from '../composables/useToast'
 import partnerHeroCard from '../assets/partner/partner-hero-card.png'
+import partnerPageBg from '../assets/partner/partner-page-bg.png'
 
 const authStore = useAuthStore()
 const type = ref('')
@@ -272,7 +273,8 @@ const campusActivities = [
   { title: '荧光夜跑', time: '6.9 周日 20:00', count: 189, tag: '运动', icon: 'activity-run' }
 ]
 const partnerPageStyle = computed(() => ({
-  '--partner-hero-card-image': `url(${partnerHeroCard})`
+  '--partner-hero-card-image': `url(${partnerHeroCard})`,
+  '--partner-page-bg-image': `url(${partnerPageBg})`
 }))
 
 const typeMap = {
@@ -340,10 +342,12 @@ async function cancelRequest(requestId) {
 
 onMounted(() => {
   document.body.classList.add('partner-route-theme')
+  document.body.style.setProperty('--partner-page-bg-image', `url(${partnerPageBg})`)
   loadListPage()
 })
 onBeforeUnmount(() => {
   document.body.classList.remove('partner-route-theme')
+  document.body.style.removeProperty('--partner-page-bg-image')
 })
 function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }
 function daysLeft(t) { if (!t) return 0; return Math.max(0, Math.ceil((new Date(t) - new Date()) / 86400000)) }

@@ -1,7 +1,7 @@
 <template>
-  <div class="auth-page glass-page">
+  <div class="auth-page auth-page--login glass-page" :style="authPageStyle">
     <section class="auth-layout">
-      <aside class="auth-intro glass-surface">
+      <aside class="auth-intro glass-surface" :style="{ backgroundImage: `url(${loginLeftCardBg})` }">
         <span class="hero-kicker">Campus mutual aid</span>
         <h1><span class="liquid-highlight">青隅</span> CampusHub</h1>
         <p>把倾诉、搭子、心动和通知放在一个清晰可信的校园互助空间里。</p>
@@ -38,10 +38,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import { getApiErrorMessage } from '../api'
+import loginLeftCardBg from '../assets/auth/login-left-card-bg.png'
 
 const router = useRouter()
 const route = useRoute()
@@ -50,6 +51,9 @@ const phone = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
+const authPageStyle = computed(() => ({
+  '--auth-left-card-bg': `url(${loginLeftCardBg})`
+}))
 
 async function handleLogin() {
   if (loading.value) return

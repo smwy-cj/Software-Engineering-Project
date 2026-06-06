@@ -7,6 +7,7 @@ import com.campushub.entity.PartnerReq;
 import com.campushub.entity.TreeHolePost;
 import com.campushub.repository.LoveMatchRepository;
 import com.campushub.repository.LoveReqRepository;
+import com.campushub.repository.NotificationRepository;
 import com.campushub.repository.PartnerMatchRepository;
 import com.campushub.repository.PartnerReqRepository;
 import com.campushub.repository.TreeHolePostRepository;
@@ -23,17 +24,29 @@ public class ProfileActivityService {
     private final LoveReqRepository loveReqRepository;
     private final PartnerMatchRepository partnerMatchRepository;
     private final LoveMatchRepository loveMatchRepository;
+    private final NotificationRepository notificationRepository;
 
     public ProfileActivityService(TreeHolePostRepository treeHolePostRepository,
                                   PartnerReqRepository partnerReqRepository,
                                   LoveReqRepository loveReqRepository,
                                   PartnerMatchRepository partnerMatchRepository,
-                                  LoveMatchRepository loveMatchRepository) {
+                                  LoveMatchRepository loveMatchRepository,
+                                  NotificationRepository notificationRepository) {
         this.treeHolePostRepository = treeHolePostRepository;
         this.partnerReqRepository = partnerReqRepository;
         this.loveReqRepository = loveReqRepository;
         this.partnerMatchRepository = partnerMatchRepository;
         this.loveMatchRepository = loveMatchRepository;
+        this.notificationRepository = notificationRepository;
+    }
+
+    public Map<String, Object> getStats(Long userId) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("treeHoleCount", treeHolePostRepository.countByUserIdAndIsDeletedFalse(userId));
+        result.put("receivedLikes", treeHolePostRepository.sumLikeCountByUserId(userId));
+        result.put("receivedComments", treeHolePostRepository.sumCommentCountByUserId(userId));
+        result.put("unreadNotifications", notificationRepository.countByUserIdAndIsReadFalse(userId));
+        return result;
     }
 
     public Map<String, Object> listPublished(Long userId) {
@@ -94,7 +107,7 @@ public class ProfileActivityService {
         Map<String, Object> item = baseItem("love", match.getId(), match.getStatus(), match.getApplyTime());
         item.put("title", "心动申请");
         item.put("content", req != null ? req.getDescription() : "原交友需求已不可用");
-        item.put("meta", "状态 " + match.getStatus());
+        item.put("meta", "状态 " + statusText(match.getStatus()));
         return item;
     }
 
@@ -103,8 +116,26 @@ public class ProfileActivityService {
         item.put("module", module);
         item.put("id", id);
         item.put("status", status);
+        item.put("statusText", statusText(status));
         item.put("createdAt", createdAt);
         return item;
+    }
+
+    private String statusText(String status) {
+        return switch (status == null ? "" : status) {
+            case "PUBLISHED" -> "已发布";
+            case "PENDING" -> "审核中";
+            case "APPROVED" -> "已通过";
+            case "ACCEPTED" -> "已接受";
+            case "REJECTED" -> "已拒绝";
+            case "CANCELED" -> "已取消";
+            case "CLOSED" -> "已关闭";
+            case "EXPIRED" -> "已过期";
+            case "COMPLETED" -> "已完成";
+            case "ENDED" -> "已结束";
+            case "DRAFT" -> "草稿";
+            default -> "处理中";
+        };
     }
 
     private String categoryName(String category) {

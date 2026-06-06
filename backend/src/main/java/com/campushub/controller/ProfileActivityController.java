@@ -16,6 +16,11 @@ public class ProfileActivityController {
         this.profileActivityService = profileActivityService;
     }
 
+    @GetMapping("/stats")
+    public ApiResponse<?> getStats(@RequestAttribute("userId") Long userId) {
+        return ApiResponse.success(profileActivityService.getStats(userId));
+    }
+
     @GetMapping("/published")
     public ApiResponse<?> listPublished(@RequestAttribute("userId") Long userId) {
         return ApiResponse.success(profileActivityService.listPublished(userId));

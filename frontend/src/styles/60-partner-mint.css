@@ -379,21 +379,33 @@
 
 /* Partner page image hero and scoped green shell theme */
 body.partner-route-theme {
-  background:
-    radial-gradient(circle at 20% 0%, rgba(219, 246, 223, 0.72), transparent 30%),
-    linear-gradient(135deg, #f7fbf1 0%, #eef8ef 46%, #fafcf7 100%);
+  background-color: #f3faf4;
+  background-image:
+    linear-gradient(180deg, rgba(247, 251, 241, 0.16), rgba(238, 248, 239, 0.3)),
+    var(--partner-page-bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 body.partner-route-theme .premium-app-shell {
-  background:
-    radial-gradient(circle at 18% 4%, rgba(226, 248, 216, 0.58), transparent 28%),
-    radial-gradient(circle at 92% 12%, rgba(215, 243, 229, 0.54), transparent 30%),
-    linear-gradient(135deg, #f7fbf1 0%, #eef8ef 52%, #fbfcf7 100%);
+  background-color: transparent;
+  background-image:
+    linear-gradient(180deg, rgba(247, 251, 241, 0.14), rgba(238, 248, 239, 0.26)),
+    var(--partner-page-bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 body.partner-route-theme .app-rail {
+  background: rgba(255, 255, 255, 0.84);
   border-color: rgba(96, 160, 105, 0.16);
   box-shadow: 0 24px 70px rgba(76, 132, 92, 0.1);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
 }
 
 body.partner-route-theme .app-rail .nav-pill.active,
@@ -416,8 +428,11 @@ body.partner-route-theme .app-rail .nav-pill.router-link-exact-active:hover {
 body.partner-route-theme .topbar,
 body.partner-route-theme .topbar-icon-button,
 body.partner-route-theme .topbar-user {
+  background: rgba(255, 255, 255, 0.78);
   border-color: rgba(96, 160, 105, 0.16);
   box-shadow: 0 16px 40px rgba(76, 132, 92, 0.09);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
 }
 
 body.partner-route-theme .topbar-mantra {
@@ -444,10 +459,7 @@ body.partner-route-theme .rail-campus-card {
 .partner-page {
   min-height: calc(100vh - 110px);
   padding-bottom: 34px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(213, 242, 202, 0.58), transparent 26%),
-    radial-gradient(circle at 88% 4%, rgba(212, 241, 226, 0.58), transparent 26%),
-    linear-gradient(135deg, #f3faf4 0%, #f7fbf1 46%, #fafcf7 100%);
+  background: transparent;
 }
 
 .partner-page::before {
@@ -459,31 +471,71 @@ body.partner-route-theme .rail-campus-card {
   background-size: auto, auto, 42px 42px, 42px 42px;
 }
 
+@supports (-webkit-touch-callout: none) {
+  body.partner-route-theme,
+  body.partner-route-theme .premium-app-shell {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 768px) {
+  body.partner-route-theme,
+  body.partner-route-theme .premium-app-shell {
+    background-attachment: scroll;
+    background-position: center top;
+  }
+}
+
 .partner-shell {
   width: min(1280px, 100%);
   gap: 24px;
 }
 
 .partner-page .partner-image-hero {
-  min-height: clamp(280px, 27vw, 348px);
+  min-height: clamp(268px, 18vw, 304px);
   display: block;
   padding: 0;
   overflow: hidden;
-  background-color: #eaf6df;
-  background-image: var(--partner-hero-card-image);
-  background-size: contain;
-  background-position: left center;
+  background-color: #f1fae8;
+  background-image:
+    var(--partner-hero-card-image),
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.58), transparent 24%),
+    radial-gradient(circle at 86% 82%, rgba(177, 224, 150, 0.2), transparent 28%),
+    linear-gradient(135deg, rgba(241, 250, 232, 0.72), rgba(250, 255, 244, 0.62));
+  background-size:
+    calc(100% - 8px) auto,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+  background-position:
+    center,
+    center,
+    center,
+    center;
   background-repeat: no-repeat;
-  border: 1px solid rgba(96, 160, 105, 0.18);
+  border: 1px solid rgba(102, 160, 94, 0.12);
   border-radius: 32px;
   box-shadow:
-    0 28px 72px rgba(69, 126, 87, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.76);
+    0 24px 60px rgba(93, 150, 86, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 0 34px rgba(235, 248, 226, 0.28);
 }
 
-.partner-page .partner-image-hero::before,
-.partner-page .partner-image-hero::after {
+.partner-page .partner-image-hero::before {
   display: none;
+}
+
+.partner-page .partner-image-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(235, 248, 226, 0.04)),
+    radial-gradient(circle at 3% 50%, rgba(241, 250, 232, 0.07), transparent 22%),
+    radial-gradient(circle at 97% 50%, rgba(236, 248, 226, 0.07), transparent 24%),
+    radial-gradient(ellipse at 50% 100%, rgba(217, 241, 196, 0.07), transparent 40%);
 }
 
 .partner-hero-controls {
@@ -501,16 +553,16 @@ body.partner-route-theme .rail-campus-card {
   margin: 0;
   padding: 0 26px;
   color: #fff;
-  background: linear-gradient(135deg, #65ca70, #35ae62);
+  background: linear-gradient(135deg, #55b96f, #77c879);
   border: 1px solid rgba(255, 255, 255, 0.58);
   border-radius: 999px;
-  box-shadow: 0 18px 34px rgba(48, 147, 82, 0.28);
+  box-shadow: 0 16px 30px rgba(85, 185, 111, 0.24);
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
 .partner-page .partner-hero-action:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 22px 42px rgba(48, 147, 82, 0.32);
+  box-shadow: 0 20px 38px rgba(85, 185, 111, 0.3);
   filter: saturate(1.04);
 }
 
@@ -966,7 +1018,7 @@ body.partner-route-theme .rail-campus-card {
 
 @media (max-width: 1180px) {
   .partner-page .partner-image-hero {
-    min-height: 316px;
+    min-height: 284px;
   }
 
   .partner-aside {
@@ -993,8 +1045,16 @@ body.partner-route-theme .rail-campus-card {
   .partner-page .partner-image-hero {
     min-height: 172px;
     border-radius: 24px;
-    background-size: contain;
-    background-position: left center;
+    background-size:
+      calc(100% - 8px) auto,
+      100% 100%,
+      100% 100%,
+      100% 100%;
+    background-position:
+      center,
+      center,
+      center,
+      center;
   }
 
   .partner-hero-controls {

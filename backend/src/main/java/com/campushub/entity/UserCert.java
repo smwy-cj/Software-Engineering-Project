@@ -15,19 +15,19 @@ public class UserCert {
     @Column(name = "student_id", nullable = false, length = 20, unique = true)
     private String studentId;
 
-    @Column(name = "real_name", nullable = false, length = 32)
+    @Column(name = "real_name", length = 32)
     private String realName;
 
-    @Column(name = "id_card", nullable = false, length = 18)
+    @Column(name = "id_card", length = 18)
     private String idCard;
 
     @Column(nullable = false, length = 64)
     private String university;
 
-    @Column(nullable = false, length = 64)
+    @Column(length = 64)
     private String major;
 
-    @Column(nullable = false, length = 16)
+    @Column(length = 16)
     private String grade;
 
     @Column(nullable = false, length = 8)
@@ -43,6 +43,9 @@ public class UserCert {
 
     @Column(length = 512)
     private String interests;
+
+    @Column(name = "contact_info", length = 100)
+    private String contactInfo;
 
     @Column(name = "cert_status", nullable = false, length = 16)
     private String certStatus = "UNCERTIFIED";
@@ -88,6 +91,8 @@ public class UserCert {
     public void setSignature(String signature) { this.signature = signature; }
     public String getInterests() { return interests; }
     public void setInterests(String interests) { this.interests = interests; }
+    public String getContactInfo() { return contactInfo; }
+    public void setContactInfo(String contactInfo) { this.contactInfo = contactInfo; }
     public String getCertStatus() { return certStatus; }
     public void setCertStatus(String certStatus) { this.certStatus = certStatus; }
     public int getCertAttempts() { return certAttempts; }

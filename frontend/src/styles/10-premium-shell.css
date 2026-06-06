@@ -137,18 +137,22 @@ body::after {
 .rail-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   min-height: 58px;
   padding: 8px;
+  background: transparent;
   border-radius: 22px;
+  box-shadow: none;
   cursor: pointer;
 }
 
 .rail-brand-logo {
   display: block;
-  width: min(156px, 100%);
+  width: clamp(120px, 72%, 156px);
   height: auto;
   object-fit: contain;
+  background: transparent;
 }
 
 .brand-mark {
@@ -413,9 +417,17 @@ body::after {
   place-items: center;
   width: 32px;
   height: 32px;
+  overflow: hidden;
   color: #fff;
   background: var(--premium-primary);
   border-radius: 12px;
+}
+
+.topbar-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .topbar-user-meta {
@@ -1132,8 +1144,8 @@ body::after {
 }
 
 .business-page.profile-page {
-  --module-primary: #4f91d9;
-  --module-soft: #e3f1ff;
+  --module-primary: #8d7cf6;
+  --module-soft: #efe9ff;
 }
 
 .business-page.admin-page {
@@ -1286,6 +1298,212 @@ body::after {
     linear-gradient(145deg, rgba(255,255,255,0.96), rgba(227, 241, 255, 0.48));
 }
 
+/* Profile page scoped lavender personal-space theme */
+body.profile-route-theme {
+  background-color: #f7f3ff;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(242, 235, 255, 0.22)),
+    var(--profile-page-bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body.profile-route-theme .premium-app-shell {
+  background-color: transparent;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(242, 235, 255, 0.2)),
+    var(--profile-page-bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body:has(.profile-page) .premium-app-shell {
+  background-color: transparent;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(242, 235, 255, 0.2)),
+    var(--profile-page-bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body.profile-route-theme .app-rail {
+  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(150, 120, 220, 0.16);
+  box-shadow: 0 24px 70px rgba(120, 100, 180, 0.12);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+body.profile-route-theme .app-rail .nav-pill.active,
+body.profile-route-theme .app-rail .nav-pill.router-link-active {
+  color: #fff;
+  background: linear-gradient(135deg, #9c7df5 0%, #7d9af8 100%);
+  box-shadow: 0 18px 34px rgba(132, 104, 226, 0.24);
+}
+
+body.profile-route-theme .app-rail .nav-pill:hover {
+  color: #5a46a5;
+  background: rgba(241, 235, 255, 0.84);
+}
+
+body.profile-route-theme .topbar,
+body.profile-route-theme .topbar-icon-button,
+body.profile-route-theme .topbar-user {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(150, 120, 220, 0.16);
+  box-shadow: 0 16px 40px rgba(120, 100, 180, 0.1);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+body.profile-route-theme .topbar-mantra {
+  color: #4d437d;
+  border-color: rgba(150, 120, 220, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+body.profile-route-theme .mantra-mark {
+  color: #8d7cf6;
+}
+
+body.profile-route-theme .topbar-avatar {
+  color: #fff;
+  background: linear-gradient(145deg, #9c7df5, #7d9af8);
+}
+
+body.profile-route-theme .rail-campus-card {
+  color: #4d437d;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(184, 164, 248, 0.54), transparent 24%),
+    linear-gradient(145deg, rgba(245, 240, 255, 0.9), rgba(235, 243, 255, 0.82));
+}
+
+@supports (-webkit-touch-callout: none) {
+  body.profile-route-theme,
+  body.profile-route-theme .premium-app-shell,
+  body:has(.profile-page) .premium-app-shell {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 768px) {
+  body.profile-route-theme,
+  body.profile-route-theme .premium-app-shell,
+  body:has(.profile-page) .premium-app-shell {
+    background-attachment: scroll;
+    background-position: center top;
+  }
+}
+
+.business-page.profile-page {
+  color: #241f3f;
+  background: transparent;
+}
+
+.profile-page .business-hero,
+.profile-page .profile-panel,
+.profile-page .glass-mini-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(245, 241, 255, 0.74));
+  border: 1px solid rgba(150, 120, 220, 0.16);
+  box-shadow: 0 20px 60px rgba(120, 100, 180, 0.12);
+  backdrop-filter: blur(16px) saturate(135%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
+}
+
+.profile-page .business-hero {
+  overflow: hidden;
+}
+
+.profile-page .business-hero::before {
+  border-color: rgba(150, 120, 220, 0.18);
+}
+
+.profile-page .business-hero::after {
+  background: linear-gradient(145deg, #b6a2f7, #8fb0ff);
+}
+
+.profile-page .hero-kicker,
+.profile-page .glass-tag,
+.profile-page .tag {
+  color: #5a46a5;
+  background: rgba(239, 233, 255, 0.82);
+  border-color: rgba(150, 120, 220, 0.16);
+}
+
+.profile-page .glass-button-primary {
+  background: linear-gradient(135deg, #9c7df5, #7d9af8);
+  box-shadow: 0 16px 34px rgba(132, 104, 226, 0.24);
+}
+
+.profile-page .glass-button-primary:hover {
+  box-shadow: 0 20px 42px rgba(132, 104, 226, 0.3);
+}
+
+.profile-page .glass-button-secondary,
+.profile-page .glass-button {
+  color: #5a46a5;
+  background: rgba(239, 233, 255, 0.78);
+  border-color: rgba(150, 120, 220, 0.16);
+}
+
+.profile-page .glass-input,
+.profile-page .form-group input,
+.profile-page .form-group select,
+.profile-page .form-group textarea {
+  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(150, 120, 220, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.profile-page .profile-avatar {
+  background: linear-gradient(145deg, #9c7df5, #7d9af8);
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 18px 36px rgba(132, 104, 226, 0.26),
+    0 0 0 8px rgba(239, 233, 255, 0.5);
+}
+
+.profile-page .profile-card-head h3,
+.profile-page .profile-panel h3,
+.profile-page .business-hero h1 {
+  color: #241f3f;
+}
+
+.profile-page .profile-card-head p,
+.profile-page .profile-panel p,
+.profile-page .business-hero p,
+.profile-page .profile-quick-grid span {
+  color: #665d86;
+}
+
+.profile-page .profile-quick-grid > div,
+.profile-page .profile-quick-action,
+.profile-page .activity-section {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(150, 120, 220, 0.16);
+  box-shadow: 0 14px 36px rgba(120, 100, 180, 0.08);
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.profile-page .profile-quick-grid > div:hover,
+.profile-page .profile-quick-action:hover,
+.profile-page .activity-section:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 20px 44px rgba(120, 100, 180, 0.13);
+}
+
+.profile-page .activity-item {
+  border-top-color: rgba(150, 120, 220, 0.16);
+}
+
 .profile-card-head {
   display: flex;
   align-items: center;
@@ -1381,12 +1599,68 @@ body::after {
   width: min(1060px, 100%);
 }
 
+.auth-page {
+  background: linear-gradient(135deg, #f7f5ff 0%, #eef2ff 48%, #fff7fb 100%);
+}
+
 .auth-intro {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 560px;
+  padding: 34px;
+  background-color: #eef2ff;
+  background-image: var(--auth-left-card-bg);
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(142, 126, 210, 0.16);
+  border-radius: 32px;
+  box-shadow: 0 24px 70px rgba(110, 95, 170, 0.18);
+}
+
+.auth-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background:
-    radial-gradient(circle at 18% 18%, rgba(216, 238, 233, 0.9), transparent 28%),
-    linear-gradient(145deg, rgba(220, 231, 255, 0.92), rgba(255, 255, 255, 0.86));
-  border: 1px solid rgba(53, 92, 170, 0.14);
-  box-shadow: var(--premium-shadow);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(80, 62, 136, 0.2)),
+    radial-gradient(circle at 18% 82%, rgba(255, 255, 255, 0.22), transparent 30%);
+  pointer-events: none;
+}
+
+.auth-intro > * {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-intro .hero-kicker,
+.auth-intro h1,
+.auth-intro p,
+.auth-intro .auth-points {
+  text-shadow: 0 2px 14px rgba(48, 38, 94, 0.16);
+}
+
+.auth-intro .hero-kicker,
+.auth-intro .glass-tag {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+
+.auth-card {
+  border-radius: 32px;
+}
+
+.auth-page--register .auth-layout {
+  width: min(1120px, 100%);
+  grid-template-columns: minmax(420px, 1fr) minmax(390px, 440px);
+}
+
+.auth-page--register .auth-intro {
+  min-height: 640px;
 }
 
 .empty-state {
@@ -1482,6 +1756,10 @@ body::after {
     grid-template-columns: 220px minmax(0, 1fr);
   }
 
+  .auth-page--register .auth-layout {
+    grid-template-columns: minmax(360px, 1fr) minmax(360px, 430px);
+  }
+
   .premium-home .home-hero.hero-panel,
   .home-content-grid {
     grid-template-columns: 1fr;
@@ -1496,6 +1774,15 @@ body::after {
   .premium-app-shell {
     display: block;
     padding-bottom: 92px;
+  }
+
+  .auth-page--register .auth-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-intro,
+  .auth-page--register .auth-intro {
+    min-height: clamp(240px, 46vw, 320px);
   }
 
   .app-rail {

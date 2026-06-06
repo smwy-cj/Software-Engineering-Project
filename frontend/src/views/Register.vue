@@ -1,7 +1,7 @@
 <template>
-  <div class="auth-page glass-page">
+  <div class="auth-page auth-page--register glass-page" :style="authPageStyle">
     <section class="auth-layout">
-      <aside class="auth-intro glass-surface">
+      <aside class="auth-intro glass-surface" :style="{ backgroundImage: `url(${loginLeftCardBg})` }">
         <span class="hero-kicker">Start with trust</span>
         <h1><span class="liquid-highlight">青隅</span> CampusHub</h1>
         <p>用更轻的方式建立连接，也用清晰规则保护每一次表达。</p>
@@ -59,6 +59,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import { getApiErrorMessage } from '../api'
+import loginLeftCardBg from '../assets/auth/login-left-card-bg.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -72,6 +73,9 @@ const captchaCode = ref('')
 const captchaLoading = ref(false)
 const loading = ref(false)
 const error = ref('')
+const authPageStyle = computed(() => ({
+  '--auth-left-card-bg': `url(${loginLeftCardBg})`
+}))
 
 async function loadCaptcha() {
   captchaLoading.value = true

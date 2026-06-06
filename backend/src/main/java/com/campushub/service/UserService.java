@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -144,24 +145,23 @@ public class UserService {
     }
 
     @Transactional
-    public Object certify(Long userId, UserCert certData) {
+    public Object certify(Long userId, CertifyRequest req) {
         UserCert cert = new UserCert();
         cert.setUserId(userId);
-        cert.setStudentId(certData.getStudentId());
-        cert.setRealName(certData.getRealName());
-        cert.setIdCard(certData.getIdCard());
-        cert.setUniversity(certData.getUniversity());
-        cert.setMajor(certData.getMajor());
-        cert.setGrade(certData.getGrade());
-        cert.setGender(certData.getGender());
-        cert.setAge(certData.getAge());
-        cert.setInterests(certData.getInterests());
+        cert.setStudentId(req.getStudentId());
+        cert.setUniversity(req.getSchool());
+        cert.setGender(req.getGender());
+        cert.setAge(req.getAge());
         cert.setCertStatus("CERTIFIED");
         cert = userCertRepository.save(cert);
 
         var resp = new java.util.LinkedHashMap<String, Object>();
         resp.put("certId", cert.getId());
-        resp.put("certStatus", cert.getCertStatus());
+        resp.put("studentId", cert.getStudentId());
+        resp.put("school", cert.getUniversity());
+        resp.put("gender", cert.getGender());
+        resp.put("age", cert.getAge());
+        resp.put("verificationStatus", cert.getCertStatus());
         return resp;
     }
 
@@ -176,16 +176,16 @@ public class UserService {
         }
         if (cert != null) {
             resp.put("certStatus", cert.getCertStatus());
-            resp.put("university", cert.getUniversity());
+            resp.put("verificationInfo", buildVerificationInfo(cert));
+            resp.put("school", cert.getUniversity());
             resp.put("major", cert.getMajor());
             resp.put("grade", cert.getGrade());
-            resp.put("enrollmentYear", parseEnrollmentYear(cert.getGrade()));
-            resp.put("gender", cert.getGender());
-            resp.put("age", cert.getAge());
-            resp.put("height", cert.getHeight());
-            resp.put("signature", cert.getSignature());
+            resp.put("bio", cert.getSignature());
+            resp.put("interestTags", cert.getInterests());
+            resp.put("contactInfo", cert.getContactInfo());
         } else {
             resp.put("certStatus", "UNCERTIFIED");
+            resp.put("verificationInfo", null);
         }
         return resp;
     }
@@ -200,7 +200,7 @@ public class UserService {
             throw new BusinessException(40302, "请先完成实名认证");
         }
 
-        String newUsername = req.getUsername().trim();
+        String newUsername = req.getNickname().trim();
         if (!newUsername.equals(user.getUsername()) && userRepository.existsByUsername(newUsername)) {
             throw new BusinessException(40901, "该用户名已被占用");
         }
@@ -209,12 +209,11 @@ public class UserService {
         user.setAvatar(StringUtils.hasText(req.getAvatar()) ? req.getAvatar().trim() : null);
         userRepository.save(user);
 
-        cert.setGender(req.getGender());
-        cert.setAge(req.getAge());
-        cert.setGrade(req.getEnrollmentYear() + "级");
-        cert.setHeight(req.getHeight());
         cert.setMajor(req.getMajor());
-        cert.setSignature(req.getSignature());
+        cert.setGrade(req.getGrade());
+        cert.setSignature(req.getBio());
+        cert.setInterests(formatTags(req.getInterestTags()));
+        cert.setContactInfo(req.getContactInfo());
         userCertRepository.save(cert);
 
         return buildProfileResponse(user, cert);
@@ -231,27 +230,37 @@ public class UserService {
         var resp = new java.util.LinkedHashMap<String, Object>();
         resp.put("userId", user.getId());
         resp.put("username", user.getUsername());
+        resp.put("nickname", user.getUsername());
         resp.put("avatar", user.getAvatar());
         resp.put("certStatus", cert.getCertStatus());
-        resp.put("gender", cert.getGender());
-        resp.put("age", cert.getAge());
-        resp.put("enrollmentYear", parseEnrollmentYear(cert.getGrade()));
+        resp.put("school", cert.getUniversity());
         resp.put("grade", cert.getGrade());
-        resp.put("height", cert.getHeight());
         resp.put("major", cert.getMajor());
-        resp.put("signature", cert.getSignature());
+        resp.put("bio", cert.getSignature());
+        resp.put("interestTags", cert.getInterests());
+        resp.put("contactInfo", cert.getContactInfo());
         return resp;
     }
 
-    private Integer parseEnrollmentYear(String grade) {
-        if (!StringUtils.hasText(grade) || grade.length() < 4) {
+    private java.util.Map<String, Object> buildVerificationInfo(UserCert cert) {
+        var info = new java.util.LinkedHashMap<String, Object>();
+        info.put("studentId", cert.getStudentId());
+        info.put("school", cert.getUniversity());
+        info.put("gender", cert.getGender());
+        info.put("age", cert.getAge());
+        info.put("verificationStatus", cert.getCertStatus());
+        return info;
+    }
+
+    private String formatTags(String[] tags) {
+        if (tags == null) {
             return null;
         }
-        try {
-            return Integer.parseInt(grade.substring(0, 4));
-        } catch (NumberFormatException ex) {
-            return null;
-        }
+        return Arrays.stream(tags)
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .toList()
+                .toString();
     }
 
     private void validateRegisterInput(RegisterRequest req) {

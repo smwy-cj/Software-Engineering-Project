@@ -22,19 +22,22 @@ public class TreeHoleService {
     private final UserRepository userRepository;
     private final UserCertRepository userCertRepository;
     private final ContentReviewService contentReviewService;
+    private final NotificationService notificationService;
 
     public TreeHoleService(TreeHolePostRepository postRepository,
                            TreeHoleCommentRepository commentRepository,
                            TreeHoleLikeRepository likeRepository,
                            UserRepository userRepository,
                            UserCertRepository userCertRepository,
-                           ContentReviewService contentReviewService) {
+                           ContentReviewService contentReviewService,
+                           NotificationService notificationService) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.likeRepository = likeRepository;
         this.userRepository = userRepository;
         this.userCertRepository = userCertRepository;
         this.contentReviewService = contentReviewService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -136,6 +139,10 @@ public class TreeHoleService {
             likeRepository.save(like);
             post.setLikeCount(post.getLikeCount() + 1);
             liked = true;
+            if (!post.getUserId().equals(userId)) {
+                notificationService.createNotification(post.getUserId(), "treehole_like",
+                        "树洞收到点赞", "你的树洞收到了新的点赞", "treeholePost", postId);
+            }
         }
         postRepository.save(post);
 
@@ -172,6 +179,11 @@ public class TreeHoleService {
 
         post.setCommentCount((int) commentRepository.countByPostIdAndIsDeletedFalse(postId));
         postRepository.save(post);
+        if (!post.getUserId().equals(userId)) {
+            String summary = content.length() > 60 ? content.substring(0, 60) + "..." : content;
+            notificationService.createNotification(post.getUserId(), "treehole_comment",
+                    "树洞收到评论", "你的树洞收到了新评论：" + summary, "treeholePost", postId);
+        }
 
         var resp = new LinkedHashMap<String, Object>();
         resp.put("commentId", comment.getId());

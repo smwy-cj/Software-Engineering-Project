@@ -304,30 +304,88 @@ body {
 .campus-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
   width: 100%;
   max-width: 100%;
-  margin-top: 24px;
-  padding: 12px;
+  margin-top: 20px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(151, 125, 204, 0.16);
   border-radius: 20px;
 }
 
 .campus-stats div {
-  display: grid;
-  gap: 3px;
+  display: flex;
+  min-height: 48px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   min-width: 0;
+  text-align: center;
 }
 
 .campus-stats dt {
   color: var(--premium-ink);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 900;
+  line-height: 1;
 }
 
 .campus-stats dd {
   color: var(--premium-muted);
+  max-width: 4.5em;
+  margin: 0;
   font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.guest-action-panel {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 4px;
+}
+
+.guest-login-btn,
+.guest-register-btn {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.guest-login-btn {
+  color: #fff;
+  background: linear-gradient(135deg, #a78bfa, #f0abfc);
+  border: 0;
+  box-shadow: 0 12px 26px rgba(124, 92, 207, 0.18);
+}
+
+.guest-register-btn {
+  color: #7c5ccf;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(135%);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
+}
+
+.guest-login-btn:hover,
+.guest-register-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(124, 92, 207, 0.16);
 }
 
 .quick-entry-heading {
@@ -642,6 +700,11 @@ body {
   z-index: 1;
 }
 
+.premium-home .hero-content .home-overline {
+  margin-top: -16px;
+  margin-bottom: 0;
+}
+
 .premium-home .hero-content::after {
   display: none;
 }
@@ -704,12 +767,12 @@ body {
 
 .campus-stats {
   margin-top: 14px;
-  padding: 10px;
+  padding: 10px 8px;
   border-radius: 18px;
 }
 
 .campus-stats dt {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .quick-entry-heading {

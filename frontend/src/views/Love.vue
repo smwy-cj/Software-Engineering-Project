@@ -176,6 +176,7 @@ import api, { unwrapPage } from '../api'
 import { useAsyncState } from '../composables/useAsyncState'
 import { useToast } from '../composables/useToast'
 import loveHeroCard from '../assets/love/love-hero-card.png'
+import lovePageBg from '../assets/love/love-page-bg.png'
 
 const authStore = useAuthStore()
 const requests = ref([])
@@ -188,7 +189,8 @@ const { loading: listLoading, error: listError, run: runList } = useAsyncState('
 const { loading: actionLoading, run: runAction } = useAsyncState('操作失败')
 let refreshTimer = null
 const lovePageStyle = computed(() => ({
-  '--love-hero-card-image': `url(${loveHeroCard})`
+  '--love-hero-card-image': `url(${loveHeroCard})`,
+  '--love-page-bg-image': `url(${lovePageBg})`
 }))
 
 const categoryTabs = [
@@ -338,11 +340,13 @@ function interestTags(item) {
 
 onMounted(() => {
   document.body.classList.add('love-route-theme')
+  document.body.style.setProperty('--love-page-bg-image', `url(${lovePageBg})`)
   loadRequests()
   startAutoRefresh()
 })
 onUnmounted(() => {
   document.body.classList.remove('love-route-theme')
+  document.body.style.removeProperty('--love-page-bg-image')
   stopAutoRefresh()
 })
 </script>

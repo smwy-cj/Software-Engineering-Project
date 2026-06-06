@@ -60,7 +60,10 @@
               <span class="badge" v-if="authStore.unreadCount">{{ authStore.unreadCount }}</span>
             </router-link>
             <router-link class="topbar-user" to="/profile">
-              <span class="topbar-avatar">{{ authStore.user?.username?.slice(0, 1) || '青' }}</span>
+              <span class="topbar-avatar">
+                <img v-if="authStore.user?.avatar" :src="authStore.user.avatar" alt="头像" />
+                <span v-else>{{ authStore.user?.username?.slice(0, 1) || '青' }}</span>
+              </span>
               <span class="topbar-user-meta">
                 <strong>{{ authStore.user?.username || '同学' }}</strong>
                 <small>Lv.3</small>
@@ -85,7 +88,7 @@ import { useAuthStore } from './store/auth'
 import { useRouter } from 'vue-router'
 import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import ToastHost from './components/ToastHost.vue'
-import logoQingyu from './assets/home/logo-qingyu.png'
+import logoQingyu from './assets/home/logo-qingyu-transparent.png'
 
 const authStore = useAuthStore()
 const router = useRouter()

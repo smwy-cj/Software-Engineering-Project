@@ -1,0 +1,1 @@
+import{y as o,k as t}from"./index-COj9tZq7.js";function i(u="操作失败"){const r=t(!1),e=t("");async function n(c,a={}){if(r.value&&a.preventOverlap!==!1)return null;r.value=!0,e.value="";try{return await c()}catch(l){if(e.value=o(l,a.fallback||u),a.throwError)throw l;return null}finally{r.value=!1}}function f(){e.value=""}return{loading:r,error:e,run:n,clearError:f}}export{i as u};

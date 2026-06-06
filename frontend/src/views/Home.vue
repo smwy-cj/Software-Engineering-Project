@@ -17,24 +17,16 @@
           </h2>
           <p class="brand-copy">一个为校园日常留出温柔角落的服务中枢，让倾诉、相遇与回应都有清晰而安心的去处。</p>
           <div class="brand-signature">愿每一次靠近，都被认真接住</div>
-          <dl class="campus-stats">
-            <div>
-              <dt>128</dt>
-              <dd>获得点赞</dd>
-            </div>
-            <div>
-              <dt>36</dt>
-              <dd>收到评论</dd>
-            </div>
-            <div>
-              <dt>15</dt>
-              <dd>收藏动态</dd>
-            </div>
-            <div>
-              <dt>42</dt>
-              <dd>互相关注</dd>
+          <dl v-if="authStore.isLoggedIn" class="campus-stats">
+            <div v-for="stat in campusStats" :key="stat.label">
+              <dt>{{ stat.value }}</dt>
+              <dd>{{ stat.label }}</dd>
             </div>
           </dl>
+          <div v-else class="guest-action-panel" aria-label="登录注册入口">
+            <button class="guest-login-btn" type="button" @click="router.push('/login')">登录</button>
+            <button class="guest-register-btn" type="button" @click="router.push('/register')">注册</button>
+          </div>
         </div>
       </aside>
     </section>
@@ -142,13 +134,19 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
-import api, { unwrapPage } from '../api'
+import api, { unwrapData, unwrapPage } from '../api'
 import { useAsyncState } from '../composables/useAsyncState'
 import heroCampus from '../assets/home/hero-campus.png'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const posts = ref([])
+const profileStats = ref({
+  treeHoleCount: 0,
+  receivedLikes: 0,
+  receivedComments: 0,
+  unreadNotifications: 0
+})
 const { loading: feedLoading, error: feedError, run } = useAsyncState('最新动态加载失败')
 
 const quickEntries = [
@@ -229,12 +227,33 @@ const hotTopics = [
 ]
 
 const displayedPosts = computed(() => posts.value.length ? posts.value.slice(0, 3) : mockLatestPosts)
+const campusStats = computed(() => {
+  const stats = profileStats.value
+
+  return [
+    { label: '我的树洞', value: stats.treeHoleCount || 0 },
+    { label: '收到点赞', value: stats.receivedLikes || 0 },
+    { label: '收到评论', value: stats.receivedComments || 0 },
+    { label: '未读通知', value: stats.unreadNotifications ?? authStore.unreadCount ?? 0 }
+  ]
+})
 
 onMounted(async () => {
   await run(async () => {
     const res = await api.get('/treehole/posts', { params: { size: 5 } })
-    posts.value = unwrapPage(res).content
+    const page = unwrapPage(res)
+    posts.value = page.content
   })
+
+  if (authStore.isLoggedIn) {
+    try {
+      const res = await api.get('/profile/stats')
+      profileStats.value = unwrapData(res) || profileStats.value
+      authStore.unreadCount = profileStats.value.unreadNotifications || 0
+    } catch (e) {
+      profileStats.value.unreadNotifications = authStore.unreadCount || 0
+    }
+  }
 })
 
 function formatTime(t) {

@@ -1,1 +1,0 @@
-import{n as o,k as n}from"./index-DwodlSWp.js";function i(t="操作失败"){const r=n(!1),e=n("");async function u(c,a={}){if(r.value&&a.preventOverlap!==!1)return null;r.value=!0,e.value="";try{return await c()}catch(l){if(e.value=o(l,a.fallback||t),a.throwError)throw l;return null}finally{r.value=!1}}function f(){e.value=""}return{loading:r,error:e,run:u,clearError:f}}export{i as u};
